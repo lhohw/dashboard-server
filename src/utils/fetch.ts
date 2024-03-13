@@ -1,36 +1,31 @@
+import fs from "fs";
 import { getPath } from "utils/path";
-import CustomError from "class/CustomError";
-
-export const fetchData = async (filename: string) => {
-  filename = getFileName(filename);
-  const markdownPath = getPath("markdown");
-  const file = Bun.file(`${markdownPath}${filename}`);
-  const text = await file.text();
-  return text;
-};
 
 export const getFileName = (name: string, ext = "md") => {
   if (name.endsWith(`.${ext}`)) return name;
   return `${name}.${ext}`;
 };
 
-export const isExist = async (filename: string) => {
-  try {
-    const file = Bun.file(`./assets/${filename}`);
-    const text = await file.text();
-    console.log(text);
-    return false;
-  } catch (error) {
-    const customError = new CustomError(error as Error);
-    console.log(`\nError >> ${filename}: ${customError.message}\n`);
-  }
-  return true;
+export const fetchMarkdown = async (filename: string) => {
+  const markdownPath = getPath("markdown");
+  const file = Bun.file(`${markdownPath}${filename}`);
+  const text = await file.text();
+  return text;
 };
 
-export const writeFile = (
-  name: string,
-  compressed: Uint8Array,
-  isAmend: boolean
-) => {
-  console.log(`write to ${name}`);
+export const fetchAsset = async (filename: string) => {
+  const assetsPath = getPath("assets");
+  const file = Bun.file(`${assetsPath}${filename}`);
+  const arrayBuffer = await file.arrayBuffer();
+  return arrayBuffer;
+};
+
+export const isExist = (filename: string) => {
+  const assetsPath = getPath("assets", filename);
+  return fs.existsSync(assetsPath);
+};
+
+export const writeFile = async (filename: string, compressed: Uint8Array) => {
+  const assetsPath = getPath("assets", filename);
+  await Bun.write(assetsPath, compressed);
 };

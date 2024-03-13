@@ -1,7 +1,7 @@
 import { createInterface } from "readline";
 
 export const handleIO = (cb: (input: string) => void, closeCb?: () => void) => {
-  console.log(`input filename to fetch from ../markdown/___(.md)`);
+  console.log(`input filename: ___(.md)`);
   createInterface({
     input: process.stdin,
     output: process.stdout,
