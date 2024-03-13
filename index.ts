@@ -1,11 +1,11 @@
 import { handleIO } from "io";
-import markdownCompress, { printTransformed } from "markdownCompress";
+import compressMarkdown, { printTransformed } from "compressMarkdown";
 import readAsset from "readAsset";
 
 type RunType = "compress" | "read";
 const run = () => {
   const type = (process.env?.TYPE || "compress") as RunType;
-  if (type === "compress") handleIO(markdownCompress, printTransformed);
+  if (type === "compress") handleIO(compressMarkdown, printTransformed);
   else if (type === "read") handleIO(readAsset);
   else
     throw new Error(

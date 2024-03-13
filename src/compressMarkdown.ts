@@ -6,7 +6,7 @@ import { log, error, br } from "utils/logger";
 const added: string[] = [];
 const amended: string[] = [];
 
-const markdownCompress = async (filename: string) => {
+const compressMarkdown = async (filename: string) => {
   try {
     filename = getFileName(filename);
     const text = await fetchMarkdown(filename);
@@ -34,4 +34,4 @@ export const printTransformed = () => {
   br();
 };
 
-export default markdownCompress;
+export default compressMarkdown;
