@@ -1,6 +1,6 @@
 import CustomError from "class/CustomError";
 import { decompress } from "utils/compress";
-import { fetchAsset, getFileName } from "utils/fetch";
+import { fetchAsset, getFileName } from "utils/dataFetch";
 import { error, log } from "utils/logger";
 
 const readAsset = async (filename: string) => {

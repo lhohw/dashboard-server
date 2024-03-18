@@ -1,6 +1,11 @@
 import CustomError from "class/CustomError";
 import { compress } from "utils/compress";
-import { fetchMarkdown, getFileName, isExist, writeFile } from "utils/fetch";
+import {
+  fetchMarkdown,
+  getFileName,
+  isExist,
+  writeFile,
+} from "utils/dataFetch";
 import { log, error, br } from "utils/logger";
 
 const added: string[] = [];
