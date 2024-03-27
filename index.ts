@@ -1,17 +1,19 @@
-import { handleIO } from "io";
-import compressMarkdown, { printTransformed } from "compressMarkdown";
-import readAsset from "readAsset";
+import Koa from "koa";
+import Router from "@koa/router";
+import bodyParser from "koa-bodyparser";
+import api from "api";
 
-type RunType = "compress" | "read";
-const run = () => {
-  const type = (process.env?.TYPE || "compress") as RunType;
-  console.log(`[ start to ${type} ]`);
-  if (type === "compress") handleIO(compressMarkdown, printTransformed);
-  else if (type === "read") handleIO(readAsset);
-  else
-    throw new Error(
-      `type must be one of compress | read\nreceived type: ${type}`
-    );
-};
+const app = new Koa();
+const router = new Router();
 
-run();
+router.use("/api", api.routes());
+
+app
+  .use(bodyParser())
+  .use(router.allowedMethods())
+  .use(router.routes())
+  .listen(Bun.env.PORT, listeningListener);
+
+function listeningListener() {
+  console.log(`app listening to port: ${Bun.env.PORT}`);
+}
