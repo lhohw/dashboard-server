@@ -50,7 +50,7 @@ export const addPost = async (ctx: RouterContext, next: Next) => {
 
   try {
     const { title, slug, category } = body;
-    const compressed = await compressMarkdown(slug);
+    const compressed = await compressMarkdown(slug, category);
     const res = await insertPost(title, slug, compressed, category);
     ctx.response.body = res;
     next();

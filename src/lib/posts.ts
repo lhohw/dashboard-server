@@ -1,8 +1,6 @@
 import { Client } from "pg";
-import { Post } from "const/definitions";
-import { unsplashPerPage } from "const/defaults";
-import { serializeUnsplashPhoto } from "utils/serialize";
-import { searchPhotos } from "./third-party/unsplash";
+import { Photo, Post } from "const/definitions";
+import { decompress } from "utils/compress";
 
 export const selectPosts = async (): Promise<Post[]> => {
   const client = new Client();
@@ -15,11 +13,10 @@ export const selectPosts = async (): Promise<Post[]> => {
 export const selectPost = async (id: string) => {
   const client = new Client();
   await client.connect();
-  const query = {
+  const res = await client.query({
     text: `SELECT * FROM posts WHERE id = $1`,
     values: [id],
-  };
-  const res = await client.query(query);
+  });
   await client.end();
   return res.rows[0] || null;
 };
@@ -32,20 +29,38 @@ export const insertPost = async (
 ) => {
   const client = new Client();
   await client.connect();
+
+  const createTable = await client.query(`
+    DROP TABLE posts;
+    CREATE TABLE IF NOT EXISTS posts (
+      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+      created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      title VARCHAR(255) NOT NULL,
+      slug VARCHAR(255) NOT NULL UNIQUE,
+      body BYTEA NOT NULL,
+      category VARCHAR(255) NOT NULL,
+      photo_id VARCHAR(11),
+      photo_url VARCHAR(255),
+      blur_hash VARCHAR(255) DEFAULT 'LcE{wnIVRixt~WR+NGjbxukCWBWB',
+      alt VARCHAR(255) DEFAULT 'image',
+      user_name VARCHAR(255),
+      user_link VARCHAR(255)
+    );
+  `);
+
   const postCount = parseInt(
     (await client.query(`SELECT COUNT(*) FROM posts`)).rows[0].count
   );
-  const page = Math.floor(postCount / unsplashPerPage);
-  const postIdx = postCount % unsplashPerPage;
-  const { data } = await searchPhotos({ page });
-  const photo = serializeUnsplashPhoto(data)[postIdx];
+  const photos = await client.query<Photo>(
+    `SELECT * from photos where idx = ${postCount + 1}`
+  );
+  const photo = photos.rows[0];
+  const { photo_id, photo_url, alt, blur_hash, user_name, user_link } = photo;
 
-  const { image_id, url, alt, blur_hash, user_name, user_link } = photo;
-
-  const query = {
+  const res = await client.query({
     text: `INSERT INTO posts(
       id, created_at, title, slug, body, category,
-      image_id, url, alt, blur_hash, user_name, user_link
+      photo_id, photo_url, alt, blur_hash, user_name, user_link
     ) VALUES (
       DEFAULT, DEFAULT, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
     )`,
@@ -54,15 +69,27 @@ export const insertPost = async (
       slug,
       body,
       category,
-      image_id,
-      url,
+      photo_id,
+      photo_url,
       alt,
       blur_hash,
       user_name,
       user_link,
     ],
-  };
-  const res = await client.query(query);
+  });
+
   await client.end();
-  return res.rows[0];
+  return {
+    nextCount: postCount + 1,
+    title,
+    slug,
+    body: decompress(body),
+    category,
+    photo_id,
+    photo_url,
+    alt,
+    blur_hash,
+    user_name,
+    user_link,
+  };
 };

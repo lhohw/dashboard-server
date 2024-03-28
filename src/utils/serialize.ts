@@ -15,8 +15,8 @@ export const serializeUnsplashPhoto = (photos: UnsplashPhoto[]): Photo[] => {
       } = res;
 
       return {
-        image_id: id,
-        url: raw,
+        photo_id: id,
+        photo_url: raw,
         alt: alt_description,
         blur_hash,
         user_name: name,
