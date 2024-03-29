@@ -31,7 +31,6 @@ export const insertPost = async (
   await client.connect();
 
   const createTable = await client.query(`
-    DROP TABLE posts;
     CREATE TABLE IF NOT EXISTS posts (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
