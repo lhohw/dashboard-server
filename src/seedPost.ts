@@ -22,6 +22,7 @@ const seedPost = async () => {
 
 const createPostsTable = async (client: Client) => {
   return await client.query(`
+    DROP TABLE IF EXISTS posts;
     CREATE TABLE IF NOT EXISTS posts (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
