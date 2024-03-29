@@ -67,7 +67,7 @@ export const Post = z
     created_at: z.coerce.date(),
     slug: z.string(),
     title: z.string(),
-    body: z.array(z.number()),
+    body: z.instanceof(Uint8Array),
     category: z.string(),
   })
   .merge(Photo);
