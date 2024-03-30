@@ -1,16 +1,21 @@
+import type { Photo } from "const/definitions";
+
 import { Client } from "pg";
 import { readdirSync } from "node:fs";
-import { extract, type ParsedMarkdown } from "utils/markdown";
-import compressMarkdown from "compressMarkdown";
+
+import {
+  extractMetadata,
+  type MarkdownMetadata,
+  serializeMarkdown,
+} from "utils/markdown";
 import { decompress } from "utils/compress";
-import type { Photo } from "const/definitions";
 import { markdownPath } from "const/path";
 
-const seedPost = async () => {
+const seedPosts = async () => {
   try {
     const client = new Client();
     await client.connect();
-    await createPostsTable(client);
+    await resetTable(client);
     const markdowns = await fetchMarkdown();
     const photos = await fetchAllPhotos(client, markdowns.length);
     const res = await addAllPosts(client, markdowns, photos);
@@ -20,12 +25,13 @@ const seedPost = async () => {
   }
 };
 
-const createPostsTable = async (client: Client) => {
+const resetTable = async (client: Client) => {
   return await client.query(`
     DROP TABLE IF EXISTS posts;
     CREATE TABLE IF NOT EXISTS posts (
       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
       created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       title VARCHAR(255) NOT NULL,
       slug VARCHAR(255) NOT NULL UNIQUE,
       body BYTEA NOT NULL,
@@ -51,7 +57,7 @@ const fetchMarkdown = async () => {
     (e) => !e.endsWith(".md") && e !== "draft"
   );
 
-  const parsedMarkdown: ParsedMarkdown[] = [];
+  const parsedMarkdown: MarkdownMetadata[] = [];
   for (const category of dirs) {
     const categoryPath = `${markdownPath}/${category}`;
     const files = readdirSync(categoryPath);
@@ -60,7 +66,7 @@ const fetchMarkdown = async () => {
         const filePath = `${categoryPath}/${filename}`;
         const file = Bun.file(filePath);
         const text = await file.text();
-        return extract(filename, text, category);
+        return extractMetadata(filename, text, category);
       })
     );
     const onReadyMarkdown = markdowns.filter(
@@ -74,12 +80,12 @@ const fetchMarkdown = async () => {
 
 const addAllPosts = async (
   client: Client,
-  markdowns: ParsedMarkdown[],
+  markdowns: MarkdownMetadata[],
   photos: Photo[]
 ) => {
   return await Promise.all(
     markdowns.map(async ({ slug, category, frontmatter: { title } }, idx) => {
-      const compressed = await compressMarkdown(category, slug);
+      const compressed = await serializeMarkdown(category, slug);
       return await insertPost(
         client,
         title,
@@ -104,10 +110,11 @@ export const insertPost = async (
 
   const res = await client.query({
     text: `INSERT INTO posts(
-      id, created_at, title, slug, body, category,
+      id, created_at, updated_at, title, slug, body, category,
       photo_id, photo_url, alt, blur_hash, user_name, user_link
     ) VALUES (
-      DEFAULT, DEFAULT, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+      DEFAULT, DEFAULT, DEFAULT, $1, $2, $3, $4,
+      $5, $6, $7, $8, $9, $10
     )`,
     values: [
       title,
@@ -137,4 +144,4 @@ export const insertPost = async (
   };
 };
 
-export default seedPost;
+export default seedPosts;

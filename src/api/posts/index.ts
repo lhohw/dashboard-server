@@ -5,6 +5,6 @@ const posts = new Router();
 
 posts.get("/", postsCtrl.getPosts);
 posts.get("/:id", postsCtrl.getPost);
-posts.post("/", postsCtrl.addPost);
+posts.post("/", postsCtrl.createPost);
 
 export default posts;

@@ -65,6 +65,7 @@ export const Post = z
   .object({
     id: z.string().uuid(),
     created_at: z.coerce.date(),
+    updated_at: z.coerce.date(),
     slug: z.string(),
     title: z.string(),
     body: z.instanceof(Uint8Array),
