@@ -2,6 +2,7 @@ import { describe, test, expect } from "bun:test";
 import {
   extractFrontmatter,
   inlineStyleToJSX,
+  transformReference,
   toCamelCase,
 } from "utils/markdown";
 
@@ -79,6 +80,19 @@ describe("serialize markdown", () => {
       const replaced = inlineStyleToJSX(markdown);
       expect(replaced).toMatch(
         /style={{ flex: 1, flexDirection: 'row', alignItems: 'center', }}/
+      );
+    });
+  });
+
+  describe("transform reference", () => {
+    test(`
+    - https://262.ecma-international.org/14.0/?_gl=1*1szfzq*_ga*MjEyNDk2MTYwNy4xNzA2MzE5ODM2*_ga_TDCK4DWEPP*MTcwNjkzMzgyNC4xMC4xLjE3MDY5MzM5MjcuMC4wLjA.&_ga=2.190502702.48397567.1706933825-2124961607.1706319836#sec-object.prototype.__proto__
+    - [링크](https://...)
+    `, () => {
+      const references = `- https://262.ecma-international.org/14.0/?_gl=1*1szfzq*_ga*MjEyNDk2MTYwNy4xNzA2MzE5ODM2*_ga_TDCK4DWEPP*MTcwNjkzMzgyNC4xMC4xLjE3MDY5MzM5MjcuMC4wLjA.&_ga=2.190502702.48397567.1706933825-2124961607.1706319836#sec-object.prototype.__proto__\n- [링크](https://...)`;
+      const transformed = transformReference(references);
+      expect(transformed).toBe(
+        `- [https://262.ecma-international.org/14.0/?_gl=1*1szfzq*_ga*MjEyNDk2MTYwNy4xNzA2MzE5ODM2*_ga_TDCK4DWEPP*MTcwNjkzMzgyNC4xMC4xLjE3MDY5MzM5MjcuMC4wLjA.&_ga=2.190502702.48397567.1706933825-2124961607.1706319836#sec-object.prototype.__proto__](https://262.ecma-international.org/14.0/?_gl=1*1szfzq*_ga*MjEyNDk2MTYwNy4xNzA2MzE5ODM2*_ga_TDCK4DWEPP*MTcwNjkzMzgyNC4xMC4xLjE3MDY5MzM5MjcuMC4wLjA.&_ga=2.190502702.48397567.1706933825-2124961607.1706319836#sec-object.prototype.__proto__)\n- [링크](https://...)`
       );
     });
   });

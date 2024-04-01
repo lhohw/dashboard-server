@@ -4,6 +4,7 @@ import {
   frontmatterRegex,
   inlineStyleRegex,
   markdownSerializerRegex,
+  referenceRowRegex,
 } from "const/regex";
 import { compress } from "./compress";
 
@@ -66,16 +67,21 @@ export const serializeMarkdown = async (category: string, slug: string) => {
   const path = join(markdownPath, category, slug + ".md");
   const file = Bun.file(path);
   const text = await file.text();
-  const styleToJSX = removeCommentAndReplaceInlineStyleToJSX(text);
-  const compressed = compress(styleToJSX);
+  const transformed = transform(text);
+  const compressed = compress(transformed);
   return compressed;
 };
 
-/** Has 2 responsibility for performance reason */
-const removeCommentAndReplaceInlineStyleToJSX = (text: string) => {
+/**
+ * Mulitple responsibility for performance reason
+ * remove comment | inline style to JSX | transform reference
+ * */
+const transform = (text: string) => {
   return text.replace(markdownSerializerRegex, (matched) => {
     if (isComment(matched)) return "";
-    return inlineStyleToJSX(matched);
+    if (isStyle(matched)) return inlineStyleToJSX(matched);
+    if (isReference(matched)) return transformReference(matched);
+    throw new Error(`serialization failed\n${matched}`);
   });
 };
 
@@ -84,6 +90,8 @@ export const toCamelCase = (text: string) => {
 };
 
 const isComment = (text: string) => text.startsWith("<!--");
+const isStyle = (text: string) => text.startsWith("style");
+const isReference = (text: string) => text.startsWith("## 참고");
 
 export const inlineStyleToJSX = (text: string) => {
   let json = "";
@@ -96,4 +104,22 @@ export const inlineStyleToJSX = (text: string) => {
     json += ` ${key}: ${value},`;
   }
   return `style={{${json} }}`;
+};
+
+export const transformReference = (text: string) => {
+  const hasNewLine = text.endsWith("\n");
+  const splitted = text.split("\n");
+  const heading = splitted.shift();
+  return (
+    heading +
+    "\n" +
+    splitted
+      .map((row) => {
+        if (row.startsWith("- [")) return row;
+        const url = row.substring(1).trim();
+        return `- [${url}](${url})`;
+      })
+      .join("\n") +
+    (hasNewLine ? "\n" : "")
+  );
 };
