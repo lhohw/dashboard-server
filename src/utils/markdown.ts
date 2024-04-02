@@ -4,7 +4,6 @@ import {
   frontmatterRegex,
   inlineStyleRegex,
   markdownSerializerRegex,
-  referenceRowRegex,
 } from "const/regex";
 import { compress } from "./compress";
 
@@ -74,13 +73,15 @@ export const serializeMarkdown = async (category: string, slug: string) => {
 
 /**
  * Mulitple responsibility for performance reason
- * remove comment | inline style to JSX | transform reference
+ * remove comment | inline style to JSX |
+ * transform reference | markdown table to HTML
  * */
-const transform = (text: string) => {
+export const transform = (text: string) => {
   return text.replace(markdownSerializerRegex, (matched) => {
     if (isComment(matched)) return "";
     if (isStyle(matched)) return inlineStyleToJSX(matched);
     if (isReference(matched)) return transformReference(matched);
+    if (isTable(matched)) return transformTable(matched);
     throw new Error(`serialization failed\n${matched}`);
   });
 };
@@ -91,7 +92,8 @@ export const toCamelCase = (text: string) => {
 
 const isComment = (text: string) => text.startsWith("<!--");
 const isStyle = (text: string) => text.startsWith("style");
-const isReference = (text: string) => text.startsWith("## 참고");
+const isReference = (text: string) => text.startsWith("## 참조");
+const isTable = (text: string) => text.trim().match(/^\|/);
 
 export const inlineStyleToJSX = (text: string) => {
   let json = "";
@@ -108,13 +110,14 @@ export const inlineStyleToJSX = (text: string) => {
 
 export const transformReference = (text: string) => {
   const hasNewLine = text.endsWith("\n");
-  const splitted = text.split("\n");
+  const splitted = text.split(/\n\s*/).filter((e) => !!e.trim());
   const heading = splitted.shift();
   return (
     heading +
     "\n" +
     splitted
       .map((row) => {
+        row = row.trim();
         if (row.startsWith("- [")) return row;
         const url = row.substring(1).trim();
         return `- [${url}](${url})`;
@@ -122,4 +125,41 @@ export const transformReference = (text: string) => {
       .join("\n") +
     (hasNewLine ? "\n" : "")
   );
+};
+
+export const transformTable = (text: string) => {
+  const table = text
+    .trim()
+    .split(/\n\s*/)
+    .map((row) => row.trim().split("|"))
+    .filter((row) => row);
+  if (!isRightTable(table)) return text;
+  return createHTMLTable(table);
+};
+
+const isRightTable = (table: string[][]) => {
+  const col = table[0].length;
+  return (
+    table[1]?.length === col &&
+    table[1]?.slice(1, -1).every((data) => data.match(/^\s*-+\s*$/))
+  );
+};
+
+const createHTMLTable = (table: string[][]) => {
+  let tableHTML = `\n<table><thead><tr>${table[0]
+    .slice(1, -1)
+    .map((data) => `<th>${data}</th>`)
+    .join("")}</tr></thead><tbody>`;
+  const r = table.length;
+  const c = table[0].length;
+  for (let y = 2; y < r; y++) {
+    tableHTML += "<tr>";
+    const row = table[y];
+    Array.from({ length: c - 2 }).forEach((_, i) => {
+      tableHTML += `<td>${row[i + 1] ?? ""}</td>`;
+    });
+    tableHTML += "</tr>";
+  }
+  tableHTML += "</tbody></table>\n";
+  return tableHTML;
 };
