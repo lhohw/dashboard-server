@@ -57,7 +57,7 @@ const fetchMarkdown = async () => {
     (e) => !e.endsWith(".md") && e !== "draft"
   );
 
-  const parsedMarkdown: MarkdownMetadata[] = [];
+  const markdownMetadatas: MarkdownMetadata[] = [];
   for (const category of dirs) {
     const categoryPath = `${markdownPath}/${category}`;
     const files = readdirSync(categoryPath);
@@ -72,10 +72,10 @@ const fetchMarkdown = async () => {
     const onReadyMarkdown = markdowns.filter(
       ({ frontmatter }) => frontmatter.status === "ready"
     );
-    parsedMarkdown.push(...onReadyMarkdown);
+    markdownMetadatas.push(...onReadyMarkdown);
   }
 
-  return parsedMarkdown;
+  return markdownMetadatas;
 };
 
 const addAllPosts = async (
@@ -144,4 +144,4 @@ export const insertPost = async (
   };
 };
 
-export default seedPosts;
+seedPosts();
