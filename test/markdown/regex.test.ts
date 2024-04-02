@@ -196,6 +196,29 @@ describe("markdown table", () => {
     expect(matched).toBe(markdown);
   });
   test(`
+  | 표현식 | 결괏값 |
+  |---|---|
+  | 5 | 5 |
+  | 5 + 10 | 15 |
+  | (5 + 10) * 4 | 60 |
+  | () => 5 * 4 | () => 5 * 4 |
+  | (() => 10)() | 10 |
+  | 5 < 10 | true |`, () => {
+    const markdown = `
+    | 표현식 | 결괏값 |
+    |---|---|
+    | 5 | 5 |
+    | 5 + 10 | 15 |
+    | (5 + 10) * 4 | 60 |
+    | () => 5 * 4 | () => 5 * 4 |
+    | (() => 10)() | 10 |
+    | 5 < 10 | true |`
+      .split(/\n\s*/)
+      .join("\n");
+    const matched = markdown.match(tableRegex)?.[0];
+    expect(matched).toBe(markdown);
+  });
+  test(`
   Not Table
   const nonNever: string | number | boolean = never; // ok
   const nonNever: null | undefined = never; // ok
