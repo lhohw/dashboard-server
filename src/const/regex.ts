@@ -16,11 +16,8 @@ export const commentRegex =
 export const referenceRegex =
   /## 참조\n\s*(?:- [<>\[\]\(\)\{\}!@#\$%\^&\*\-_=\+;':",.\/\?\\\|\w\d가-힣ㄱ-ㅎㅏ-ㅣ]+\n?[ ]*)+/g;
 
-export const tableRegex =
-  /\s*(?:\|[\s\d\w가-힣ㄱ-ㅎㅏ-ㅣ_\-,.=+!@#$%^&\*\(\)\[\]\{\}\+\\\<\>;':",./\?]*)+\|\n\s*(?:\|[-\s]+)+\|\n\s*(?:\|[\s\d\w가-힣ㄱ-ㅎㅏ-ㅣ_\-,.=+!@#$%^&\*\(\)\[\]\{\}\+\\\<\>;':",./\?]*)+/g;
-
 export const markdownSerializerRegex = new RegExp(
-  [styleRegex, commentRegex, referenceRegex, tableRegex]
+  [styleRegex, commentRegex, referenceRegex]
     .map((regex) => regex.source)
     .join("|"),
   "g"

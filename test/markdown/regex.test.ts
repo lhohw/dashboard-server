@@ -4,7 +4,6 @@ import {
   inlineStyleRegex,
   referenceRegex,
   styleRegex,
-  tableRegex,
 } from "const/regex";
 
 describe("match comment", () => {
@@ -155,85 +154,5 @@ describe("match reference", () => {
     - https://www.etymonline.com/kr/word/lexical
     - https://poiemaweb.com/js-scope
     `);
-  });
-});
-
-describe("markdown table", () => {
-  test(`
-  |heading | heading | heading|
-  |-| --- | ------ |
-  |data | data | ---- data --- |
-  | --- | --- | ------- |
-  `, () => {
-    const markdown = `
-    |heading | heading | heading|
-    |-| --- | ------ |
-    |data | data | ---- data --- |
-    | --- | --- | ------- |
-    `;
-    const matched = markdown.match(tableRegex)?.[0];
-    expect(matched).toBe(markdown);
-  });
-  test(`
-  |heading | heading | heading|asd|
-  |-| --- | ------ |-|
-  |data | data | ---- data --- |ads|
-  | --- | --- | ------- |asd|
-  | ads | asd | adsd | das |asd|
-  |asd as | asdsad | asddsa | asdasd |
-  |asd|asd||ads|
-  `, () => {
-    const markdown = `
-    |heading | heading | heading|asd|
-    |-| --- | ------ |-|
-    |data | data | ---- data --- |ads|
-    | --- | --- | ------- |asd|
-    | ads | asd | adsd | das |asd|
-    |asd as | asdsad | asddsa | asdasd |
-    |asd|asd||ads|
-    `;
-    const matched = markdown.match(tableRegex)?.[0];
-    expect(matched).toBe(markdown);
-  });
-  test(`
-  | 표현식 | 결괏값 |
-  |---|---|
-  | 5 | 5 |
-  | 5 + 10 | 15 |
-  | (5 + 10) * 4 | 60 |
-  | () => 5 * 4 | () => 5 * 4 |
-  | (() => 10)() | 10 |
-  | 5 < 10 | true |`, () => {
-    const markdown = `
-    | 표현식 | 결괏값 |
-    |---|---|
-    | 5 | 5 |
-    | 5 + 10 | 15 |
-    | (5 + 10) * 4 | 60 |
-    | () => 5 * 4 | () => 5 * 4 |
-    | (() => 10)() | 10 |
-    | 5 < 10 | true |`
-      .split(/\n\s*/)
-      .join("\n");
-    const matched = markdown.match(tableRegex)?.[0];
-    expect(matched).toBe(markdown);
-  });
-  test(`
-  Not Table
-  const nonNever: string | number | boolean = never; // ok
-  const nonNever: null | undefined = never; // ok
-  const nonNever: any = never; // ok
-  const nonNever: unknown = never; // ok
-  const _never: never = never; // ok
-  `, () => {
-    const markdown = `
-    const nonNever: string | number | boolean = never; // ok
-    const nonNever: null | undefined = never; // ok
-    const nonNever: any = never; // ok
-    const nonNever: unknown = never; // ok
-    const _never: never = never; // ok
-    `;
-    const matched = markdown.match(tableRegex);
-    expect(matched).toBeNull();
   });
 });
