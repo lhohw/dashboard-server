@@ -10,7 +10,7 @@ export const selectPosts = async (): Promise<Post[]> => {
   return res.rows;
 };
 
-export const selectPost = async (id: string) => {
+export const selectPost = async (id: string): Promise<Post> => {
   const client = new Client();
   await client.connect();
   const res = await client.query({
@@ -99,31 +99,52 @@ export const insertPost = async ({
   };
 };
 
-export const updatePost = async ({
-  title,
-  slug,
-  body,
-  category,
-}: {
-  title: string;
-  slug: string;
-  body: Uint8Array;
-  category: string;
-}) => {
+export const updatePost = async (post: Post) => {
   const client = new Client();
   await client.connect();
 
+  const {
+    id,
+    created_at,
+    title,
+    slug,
+    body,
+    category,
+    photo_id,
+    photo_url,
+    alt,
+    blur_hash,
+    user_name,
+    user_link,
+  } = post;
+
   const res = await client.query({
     text: `UPDATE posts 
-      SET updated_at = DEFAULT, title = $1, slug = $2, body = $3, category = $4
-      WHERE slug = $2`,
-    values: [title, slug, body, category],
+      SET id = $1, created_at = $2, updated_at = DEFAULT,
+        title = $3, slug = $4, body = $5, category = $6,
+        photo_id = $7, photo_url = $8, alt = $9, blur_hash = $10,
+        user_name = $11, user_link = $12
+      WHERE id = $1`,
+    values: [
+      id,
+      created_at,
+      title,
+      slug,
+      body,
+      category,
+      photo_id,
+      photo_url,
+      alt,
+      blur_hash,
+      user_name,
+      user_link,
+    ],
   });
 
   const updated = (
     await client.query<Post>({
-      text: `SELECT * FROM posts WHERE slug = $1`,
-      values: [slug],
+      text: `SELECT * FROM posts WHERE id = $1`,
+      values: [id],
     })
   ).rows[0];
 
@@ -132,4 +153,17 @@ export const updatePost = async ({
     ...updated,
     body: decompress(updated.body),
   };
+};
+
+export const deletePost = async (id: string) => {
+  const client = new Client();
+  await client.connect();
+
+  const res = await client.query({
+    text: "DELETE post WHERE id = $1",
+    values: [id],
+  });
+
+  await client.end();
+  return null;
 };
