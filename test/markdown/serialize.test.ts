@@ -1,9 +1,13 @@
 import { describe, test, expect } from "bun:test";
+import { imgRegex } from "const/regex";
 import {
   extractFrontmatter,
   inlineStyleToJSX,
   transformReference,
   toCamelCase,
+  transformImage,
+  transform,
+  transformAllImage,
 } from "utils/markdown";
 
 describe("serialize markdown", () => {
@@ -116,6 +120,42 @@ describe("serialize markdown", () => {
           "- [ref](https://ref.com)\n" +
           "- [https://ref.com](https://ref.com)"
       );
+    });
+  });
+
+  describe("image transform", () => {
+    const base64ImgRegex =
+      /<img src="data:image\/png;base64,[A-Za-z0-9\+\/=]+"/;
+
+    test("prototype-graph.png", async () => {
+      const text = `<div id="prototype-graph-partial">
+        <img src="../../images/prototype-graph-partial.png" style="max-width: 600px;" alt="프로토타입 그래프 일부분" />
+      </div>`;
+      const transformed = await transformImage(text);
+      expect(transformed).toMatch(base64ImgRegex);
+    });
+    test("prototype-graph-partial.png", async () => {
+      const text = `<div id="prototype-graph">
+      <img src="../../images/prototype-graph.png" alt="프로토타입 그래프" />
+    </div>`;
+      const transformed = await transformImage(text);
+      expect(transformed).toMatch(base64ImgRegex);
+    });
+    test("img with style", async () => {
+      const text = `<div>
+        <img src="../../images/prototype-graph.png" style="display: flex;" />
+      </div>
+      
+      markdown text
+      ...
+    
+      <div>
+        <img src="../../images/prototype-graph.png" style="display: flex;" />
+      </div>`;
+      const transformed = await transformAllImage(text);
+      expect(
+        transformed.match(new RegExp(base64ImgRegex.source, "g"))
+      ).toHaveLength(2);
     });
   });
 });

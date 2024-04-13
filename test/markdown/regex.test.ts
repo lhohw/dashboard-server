@@ -4,6 +4,7 @@ import {
   inlineStyleRegex,
   referenceRegex,
   styleRegex,
+  imgRegex,
 } from "const/regex";
 
 describe("match comment", () => {
@@ -154,5 +155,93 @@ describe("match reference", () => {
     - https://www.etymonline.com/kr/word/lexical
     - https://poiemaweb.com/js-scope
     `);
+  });
+});
+
+describe("img", () => {
+  test(`<img src="../../assets/img.png"`, () => {
+    const img = `<img src="../../assets/img.png" />`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("png");
+  });
+  test(`<img src="../../assets/img.jpeg"`, () => {
+    const img = `<img src="../../assets/img.jpeg" />`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("jpeg");
+  });
+  test(`<img src="../../assets/img.jpg"`, () => {
+    const img = `<img src="../../assets/img.jpg" />`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("jpg");
+  });
+  test(`<img src="../../assets/img.svg"`, () => {
+    const img = `<img src="../../assets/img.svg" />`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("svg");
+  });
+  test(`<img src="../../assets/img.avif"`, () => {
+    const img = `<img src="../../assets/img.avif" />`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("avif");
+  });
+  test(`<img src="../../assets/img.webp"`, () => {
+    const img = `<img src="../../assets/img.webp" />`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("webp");
+  });
+  test(`<img title="i-m-a-g-e" src="../../assets/img.webp"`, () => {
+    const img = `<img title="i-m-a-g-e" src="../../assets/img.webp"`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("webp");
+  });
+  test(`<img title="i-m-a-g-e!@#A3$%^" style="display: flex;" src="../../assets/img.webp"`, () => {
+    const img = `<img title="i-m-a-g-e!@#A3$%^" style="display: flex;" src="../../assets/img.webp"`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("webp");
+  });
+  test(`<div>
+      <img title="i-m-a-g-e!@#A3" style="display: flex;" src="../../assets/img.webp" />
+    </div>`, () => {
+    const img = `<div>
+    <img title="i-m-a-g-e!@#A3" style="display: flex;" src="../../assets/img.webp" />
+  </div>`;
+    const matched = img.match(imgRegex);
+    expect(matched).toBeArray();
+    const src = matched?.[1] || "";
+    const ext = matched?.[2] || "";
+    expect(src).toBe("../../assets/img");
+    expect(ext).toBe("webp");
   });
 });

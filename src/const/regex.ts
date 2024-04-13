@@ -22,3 +22,12 @@ export const markdownSerializerRegex = new RegExp(
     .join("|"),
   "g"
 );
+
+export const srcRegex =
+  /src="([_\-\.@\/\w\d\(\)\[\]\{\},\?]+).(jp[e]?g|png|svg|avif|webp)"/;
+const titleRegex = /title="[_\-\.@\/\w\d!@#\$%\^&\*\(\)\[\]\{\},\?]+"/;
+const altRegex = /alt="[_\-\.\@\/\w\d\(\)\[\]\{\},\?]+"/;
+const imgPropsRegex = [srcRegex, titleRegex, altRegex]
+  .map((regex) => " " + regex.source)
+  .join("|");
+export const imgRegex = new RegExp(`\\s*\\<img(${imgPropsRegex})+`);

@@ -4,8 +4,10 @@ import {
   frontmatterRegex,
   inlineStyleRegex,
   markdownSerializerRegex,
+  srcRegex,
 } from "const/regex";
 import { compress } from "./compress";
+import { toBase64 } from "./serialize";
 
 type Status = "draft" | "ready";
 export type MarkdownMetadata = {
@@ -67,7 +69,8 @@ export const serializeMarkdown = async (category: string, slug: string) => {
   const file = Bun.file(path);
   const text = await file.text();
   const transformed = transform(text);
-  const compressed = compress(transformed);
+  const imgTransformed = await transformAllImage(transformed);
+  const compressed = compress(imgTransformed);
   return compressed;
 };
 
@@ -122,4 +125,26 @@ export const transformReference = (text: string) => {
       .join("\n") +
     (hasNewLine ? "\n" : "")
   );
+};
+
+export const transformAllImage = async (text: string): Promise<string> => {
+  try {
+    text = await transformImage(text);
+    return transformAllImage(text);
+  } catch (e) {
+    return text;
+  }
+};
+
+export const transformImage = async (text: string) => {
+  const matched = text.match(srcRegex);
+  if (!matched) throw new Error("source not matched");
+
+  const [matchedStr, src, ext] = matched;
+  const splitted = src.split("/");
+  const filename = splitted.pop()!;
+  const img = Bun.file(`${process.cwd()}/assets/images/${filename}.${ext}`);
+  const buf = await img.arrayBuffer();
+  const base64 = toBase64(buf);
+  return text.replace(matchedStr, `src="data:image/${ext};base64,${base64}"`);
 };
