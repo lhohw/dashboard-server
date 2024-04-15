@@ -163,8 +163,8 @@ describe("img", () => {
     const img = `<img src="../../assets/img.png" />`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("png");
   });
@@ -172,8 +172,8 @@ describe("img", () => {
     const img = `<img src="../../assets/img.jpeg" />`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("jpeg");
   });
@@ -181,8 +181,8 @@ describe("img", () => {
     const img = `<img src="../../assets/img.jpg" />`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("jpg");
   });
@@ -190,8 +190,8 @@ describe("img", () => {
     const img = `<img src="../../assets/img.svg" />`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("svg");
   });
@@ -199,8 +199,8 @@ describe("img", () => {
     const img = `<img src="../../assets/img.avif" />`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("avif");
   });
@@ -208,8 +208,8 @@ describe("img", () => {
     const img = `<img src="../../assets/img.webp" />`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("webp");
   });
@@ -217,8 +217,8 @@ describe("img", () => {
     const img = `<img title="i-m-a-g-e" src="../../assets/img.webp"`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("webp");
   });
@@ -226,8 +226,8 @@ describe("img", () => {
     const img = `<img title="i-m-a-g-e!@#A3$%^" style="display: flex;" src="../../assets/img.webp"`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("webp");
   });
@@ -239,8 +239,8 @@ describe("img", () => {
   </div>`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
-    const src = matched?.[1] || "";
-    const ext = matched?.[2] || "";
+    const src = matched?.[2] || "";
+    const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("webp");
   });

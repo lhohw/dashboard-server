@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { imgRegex } from "const/regex";
+import { base64ImgRegex, imgRegex } from "const/regex";
 import {
   extractFrontmatter,
   inlineStyleToJSX,
@@ -124,9 +124,6 @@ describe("serialize markdown", () => {
   });
 
   describe("image transform", () => {
-    const base64ImgRegex =
-      /<img src="data:image\/png;base64,[A-Za-z0-9\+\/=]+"/;
-
     test("prototype-graph.png", async () => {
       const text = `<div id="prototype-graph-partial">
         <img src="../../images/prototype-graph-partial.png" style="max-width: 600px;" alt="프로토타입 그래프 일부분" />
@@ -145,10 +142,10 @@ describe("serialize markdown", () => {
       const text = `<div>
         <img src="../../images/prototype-graph.png" style="display: flex;" />
       </div>
-      
+
       markdown text
       ...
-    
+
       <div>
         <img src="../../images/prototype-graph.png" style="display: flex;" />
       </div>`;

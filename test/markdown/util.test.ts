@@ -1,6 +1,10 @@
 import { describe, test, expect } from "bun:test";
 import { toBase64 } from "utils/serialize";
 
+import { readFileSync } from "node:fs";
+import { imagePath } from "const/path";
+import { resizeImage } from "utils/image";
+
 describe("base64 encode", () => {
   test("AB", () => {
     const str = "AB";

@@ -30,13 +30,16 @@ export const serializeUnsplashPhoto = (photos: UnsplashPhoto[]): Photo[] => {
   return [];
 };
 
-export const toBase64 = (data: string | number[] | ArrayBuffer): string => {
+export const toBase64 = (
+  data: string | number[] | ArrayBuffer | Buffer
+): string => {
   if (Array.isArray(data)) data = arrayToAsciiStr(data);
   else if (typeof data === "object") data = bufferToAsciiStr(data);
   return btoa(data);
 };
 
-const arrayToAsciiStr = (array: number[]) => String.fromCharCode(...array);
+const arrayToAsciiStr = (array: number[]) =>
+  array.map((code) => String.fromCharCode(code)).join("");
 
-const bufferToAsciiStr = (buffer: ArrayBuffer) =>
+const bufferToAsciiStr = (buffer: ArrayBuffer | Buffer) =>
   arrayToAsciiStr(Array.from(new Uint8Array(buffer)));

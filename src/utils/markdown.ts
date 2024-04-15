@@ -8,6 +8,7 @@ import {
 } from "const/regex";
 import { compress } from "./compress";
 import { toBase64 } from "./serialize";
+import { resizeImage } from "./image";
 
 type Status = "draft" | "ready";
 export type MarkdownMetadata = {
@@ -145,6 +146,7 @@ export const transformImage = async (text: string) => {
   const filename = splitted.pop()!;
   const img = Bun.file(`${process.cwd()}/assets/images/${filename}.${ext}`);
   const buf = await img.arrayBuffer();
-  const base64 = toBase64(buf);
-  return text.replace(matchedStr, `src="data:image/${ext};base64,${base64}"`);
+  const resized = await resizeImage(buf);
+  const base64 = toBase64(resized);
+  return text.replace(matchedStr, `src="data:image/webp;base64,${base64}"`);
 };

@@ -27,7 +27,9 @@ export const srcRegex =
   /src="([_\-\.@\/\w\d\(\)\[\]\{\},\?]+).(jp[e]?g|png|svg|avif|webp)"/;
 const titleRegex = /title="[_\-\.@\/\w\d!@#\$%\^&\*\(\)\[\]\{\},\?]+"/;
 const altRegex = /alt="[_\-\.\@\/\w\d\(\)\[\]\{\},\?]+"/;
-const imgPropsRegex = [srcRegex, titleRegex, altRegex]
+const imgPropsRegex = [srcRegex, titleRegex, altRegex, styleRegex]
   .map((regex) => " " + regex.source)
   .join("|");
 export const imgRegex = new RegExp(`\\s*\\<img(${imgPropsRegex})+`);
+export const base64ImgRegex =
+  /data:image\/(?:jp[e]?g|png|svg|avif|webp);base64,[A-Za-z0-9\+\/=]+"/;
