@@ -1,23 +1,19 @@
-import { Client } from "pg";
 import { Photo, Post } from "const/definitions";
 import { decompress } from "utils/compress";
+import DBPool from "class/DBClient";
 
 export const selectPosts = async (): Promise<Post[]> => {
-  const client = new Client();
-  await client.connect();
+  const client = await DBPool.getInstance();
   const res = await client.query<Post>(`SELECT * FROM posts`);
-  await client.end();
   return res.rows;
 };
 
 export const selectPost = async (id: string): Promise<Post> => {
-  const client = new Client();
-  await client.connect();
-  const res = await client.query({
+  const client = await DBPool.getInstance();
+  const res = await client.query<Post>({
     text: `SELECT * FROM posts WHERE id = $1`,
     values: [id],
   });
-  await client.end();
   return res.rows[0] || null;
 };
 
@@ -32,8 +28,7 @@ export const insertPost = async ({
   body: Uint8Array;
   category: string;
 }) => {
-  const client = new Client();
-  await client.connect();
+  const client = await DBPool.getInstance();
 
   const createTable = await client.query(`
     CREATE TABLE IF NOT EXISTS posts (
@@ -84,7 +79,6 @@ export const insertPost = async ({
     ],
   });
 
-  await client.end();
   return {
     title,
     slug,
@@ -100,8 +94,7 @@ export const insertPost = async ({
 };
 
 export const updatePost = async (post: Post) => {
-  const client = new Client();
-  await client.connect();
+  const client = await DBPool.getInstance();
 
   const {
     id,
@@ -148,7 +141,6 @@ export const updatePost = async (post: Post) => {
     })
   ).rows[0];
 
-  await client.end();
   return {
     ...updated,
     body: decompress(updated.body),
@@ -156,14 +148,12 @@ export const updatePost = async (post: Post) => {
 };
 
 export const deletePost = async (id: string) => {
-  const client = new Client();
-  await client.connect();
+  const client = await DBPool.getInstance();
 
   const res = await client.query({
     text: "DELETE post WHERE id = $1",
     values: [id],
   });
 
-  await client.end();
   return null;
 };

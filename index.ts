@@ -16,4 +16,5 @@ app
 
 function listeningListener() {
   console.log(`app listening to port: ${Bun.env.PORT}`);
+  console.log(`Environment: ${Bun.env.NODE_ENV}`);
 }

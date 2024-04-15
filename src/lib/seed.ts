@@ -1,20 +1,14 @@
+import type { Client } from "class/DBClient";
 import type { Photo } from "const/definitions";
-import { readdirSync } from "node:fs";
 
+import { readdirSync } from "node:fs";
 import {
-  extractMetadata,
   type MarkdownMetadata,
+  extractMetadata,
   serializeMarkdown,
 } from "utils/markdown";
 import { decompress } from "utils/compress";
 import { markdownPath } from "const/path";
-
-type Client = {
-  connect: () => void;
-  query: <T = unknown>(
-    sql: { text: string; values: any[] } | string
-  ) => Promise<{ rows: T[] }>;
-};
 
 export const resetTable = async (client: Client) => {
   return await client.query(`
