@@ -11,6 +11,11 @@ import { toBase64 } from "./serialize";
 import { resizeImage } from "./image";
 
 type Status = "draft" | "ready";
+export const isReady = (text: string) => {
+  const frontmatter = extractFrontmatter(text);
+  return frontmatter?.status === "ready";
+};
+
 export type MarkdownMetadata = {
   frontmatter: Record<string, string> & { status: Status; title: string };
   slug: string;
@@ -69,6 +74,8 @@ export const serializeMarkdown = async (category: string, slug: string) => {
   const path = join(markdownPath, category, slug + ".md");
   const file = Bun.file(path);
   const text = await file.text();
+  if (!isReady(text)) throw new Error("Post is not on ready state");
+
   const transformed = transform(text);
   const imgTransformed = await transformAllImage(transformed);
   const compressed = compress(imgTransformed);

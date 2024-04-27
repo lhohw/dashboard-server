@@ -1,6 +1,6 @@
 import { Photo, Post } from "const/definitions";
 import { decompress } from "utils/compress";
-import DBPool from "class/DBClient";
+import DBPool, { type Client } from "class/DBClient";
 
 export const selectPosts = async (): Promise<Post[]> => {
   const client = await DBPool.getInstance();
@@ -30,31 +30,7 @@ export const insertPost = async ({
 }) => {
   const client = await DBPool.getInstance();
 
-  const createTable = await client.query(`
-    CREATE TABLE IF NOT EXISTS posts (
-      id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-      created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      title VARCHAR(255) NOT NULL,
-      slug VARCHAR(255) NOT NULL UNIQUE,
-      body BYTEA NOT NULL,
-      category VARCHAR(255) NOT NULL,
-      photo_id VARCHAR(11),
-      photo_url VARCHAR(255),
-      blur_hash VARCHAR(255) DEFAULT 'LcE{wnIVRixt~WR+NGjbxukCWBWB',
-      alt VARCHAR(255) DEFAULT 'image',
-      user_name VARCHAR(255),
-      user_link VARCHAR(255)
-    );
-  `);
-
-  const photos = await client.query<Photo>(`
-    SELECT * FROM photos
-      WHERE photo_id
-      NOT IN (SELECT photo_id FROM posts)
-      LIMIT 1;
-  `);
-  const photo = photos.rows[0];
+  const photo = await getUnusedPhoto(client);
   const { photo_id, photo_url, alt, blur_hash, user_name, user_link } = photo;
 
   const res = await client.query({
@@ -62,7 +38,7 @@ export const insertPost = async ({
       id, created_at, updated_at, title, slug, body, category,
       photo_id, photo_url, alt, blur_hash, user_name, user_link
     ) VALUES (
-      DEFAULT, DEFAULT, $1, $2, $3, $4,
+      DEFAULT, DEFAULT, DEFAULT, $1, $2, $3, $4,
       $5, $6, $7, $8, $9, $10
     )`,
     values: [
@@ -91,6 +67,17 @@ export const insertPost = async ({
     user_name,
     user_link,
   };
+};
+
+const getUnusedPhoto = async (client: Client) => {
+  const photos = await client.query<Photo>(`
+  SELECT * FROM photos
+    WHERE photo_id
+    NOT IN (SELECT photo_id FROM posts)
+    LIMIT 1;
+`);
+  const photo = photos.rows[0];
+  return photo;
 };
 
 export const updatePost = async (post: Post) => {
