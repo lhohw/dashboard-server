@@ -1,12 +1,11 @@
 import { describe, test, expect } from "bun:test";
-import { base64ImgRegex, imgRegex } from "const/regex";
+import { base64ImgRegex } from "const/regex";
 import {
   extractFrontmatter,
   inlineStyleToJSX,
   transformReference,
   toCamelCase,
   transformImage,
-  transform,
   transformAllImage,
 } from "utils/markdown";
 
