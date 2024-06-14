@@ -1,13 +1,8 @@
 import { db } from "@vercel/postgres";
-import { getPhotos } from "lib/photos";
-import {
-  fetchPhotos,
-  fetchMarkdown,
-  isTableExists,
-  resetTable,
-  seedPhotos,
-  insertAllPosts,
-} from "lib/seed";
+import { isTableExists } from "lib/_helper";
+import { getPhotos, fetchPhotos } from "lib/photos";
+import { resetPosts, seedPhotos, insertAllPosts } from "lib/seed";
+import { fetchAllMarkdownMetadataOnReady } from "utils/markdown";
 
 async function main() {
   try {
@@ -19,10 +14,10 @@ async function main() {
       await seedPhotos(client, photos);
     }
 
-    await resetTable(client);
-    const markdowns = await fetchMarkdown();
-    const photos = await fetchPhotos(client, markdowns.length);
-    const res = await insertAllPosts(client, markdowns, photos);
+    await resetPosts(client);
+    const markdownMetadatas = await fetchAllMarkdownMetadataOnReady();
+    const photos = await fetchPhotos(client, markdownMetadatas.length);
+    await insertAllPosts(client, markdownMetadatas, photos);
   } catch (e: any) {
     console.error(e);
   }

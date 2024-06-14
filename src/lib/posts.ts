@@ -1,6 +1,7 @@
-import { Photo, Post } from "const/definitions";
+import { Post } from "const/definitions";
 import { decompress } from "utils/compress";
-import DBPool, { type Client } from "class/DBClient";
+import DBPool from "class/DBClient";
+import { getUnusedPhoto } from "lib/photos";
 
 export const selectPosts = async (): Promise<Post[]> => {
   const client = await DBPool.getInstance();
@@ -69,17 +70,6 @@ export const insertPost = async ({
   };
 };
 
-const getUnusedPhoto = async (client: Client) => {
-  const photos = await client.query<Photo>(`
-  SELECT * FROM photos
-    WHERE photo_id
-    NOT IN (SELECT photo_id FROM posts)
-    LIMIT 1;
-`);
-  const photo = photos.rows[0];
-  return photo;
-};
-
 export const updatePost = async (post: Post) => {
   const client = await DBPool.getInstance();
 
@@ -138,7 +128,7 @@ export const deletePost = async (id: string) => {
   const client = await DBPool.getInstance();
 
   const res = await client.query({
-    text: "DELETE post WHERE id = $1",
+    text: "DELETE FROM posts WHERE id = $1",
     values: [id],
   });
 

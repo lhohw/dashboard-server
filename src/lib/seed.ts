@@ -1,16 +1,11 @@
 import type { Client } from "class/DBClient";
-import type { Photo } from "const/definitions";
+import type { Heading, Photo } from "const/definitions";
 
-import { readdirSync } from "node:fs";
-import {
-  type MarkdownMetadata,
-  extractMetadata,
-  serializeMarkdown,
-} from "utils/markdown";
+import { type MarkdownMetadata } from "utils/markdown/extract";
 import { decompress } from "utils/compress";
-import { markdownPath } from "const/path";
+import { serialize } from "utils/markdown";
 
-export const resetTable = async (client: Client) => {
+export const resetPosts = async (client: Client) => {
   return await client.query(`
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     DROP TABLE IF EXISTS posts;
@@ -32,55 +27,26 @@ export const resetTable = async (client: Client) => {
   `);
 };
 
-export const fetchPhotos = async (client: Client, limit: number) => {
-  const res = await client.query<Photo>(`SELECT * FROM photos LIMIT ${limit}`);
-  return res.rows;
-};
-
-export const fetchMarkdown = async () => {
-  const path = markdownPath;
-  const dirs = readdirSync(path).filter(
-    (e) => !e.endsWith(".md") && e !== "draft"
-  );
-
-  const markdownMetadatas: MarkdownMetadata[] = [];
-  for (const category of dirs) {
-    const categoryPath = `${markdownPath}/${category}`;
-    const files = readdirSync(categoryPath);
-    const markdowns = await Promise.all(
-      files.map(async (filename) => {
-        const filePath = `${categoryPath}/${filename}`;
-        const file = Bun.file(filePath);
-        const text = await file.text();
-        return extractMetadata(filename, text, category);
-      })
-    );
-    const onReadyMarkdown = markdowns.filter(
-      ({ frontmatter }) => frontmatter.status === "ready"
-    );
-    markdownMetadatas.push(...onReadyMarkdown);
-  }
-
-  return markdownMetadatas;
-};
-
 export const insertAllPosts = async (
   client: Client,
-  markdowns: MarkdownMetadata[],
+  markdownMetadatas: MarkdownMetadata[],
   photos: Photo[]
 ) => {
   return await Promise.all(
-    markdowns.map(async ({ slug, category, frontmatter: { title } }, idx) => {
-      const compressed = await serializeMarkdown(category, slug);
-      return await insertPost(
-        client,
-        title,
-        slug,
-        compressed,
-        category,
-        photos[idx]
-      );
-    })
+    markdownMetadatas.map(
+      async ({ slug, category, frontmatter: { title } }, idx) => {
+        const { compressed, headings } = await serialize(category, slug);
+        return await insertPost(
+          client,
+          title,
+          slug,
+          compressed,
+          category,
+          photos[idx],
+          headings
+        );
+      }
+    )
   );
 };
 
@@ -90,17 +56,18 @@ export const insertPost = async (
   slug: string,
   body: Uint8Array,
   category: string,
-  photo: Photo
+  photo: Photo,
+  headings: Heading[]
 ) => {
   const { photo_id, photo_url, alt, blur_hash, user_name, user_link } = photo;
 
   const res = await client.query({
     text: `INSERT INTO posts(
       id, created_at, updated_at, title, slug, body, category,
-      photo_id, photo_url, alt, blur_hash, user_name, user_link
+      photo_id, photo_url, alt, blur_hash, user_name, user_link, headings
     ) VALUES (
       DEFAULT, DEFAULT, DEFAULT, $1, $2, $3, $4,
-      $5, $6, $7, $8, $9, $10
+      $5, $6, $7, $8, $9, $10, $11
     )`,
     values: [
       title,
@@ -113,6 +80,7 @@ export const insertPost = async (
       blur_hash,
       user_name,
       user_link,
+      headings,
     ],
   });
 
@@ -127,22 +95,8 @@ export const insertPost = async (
     blur_hash,
     user_name,
     user_link,
+    headings,
   };
-};
-
-export const isTableExists = async (client: Client, tableName: string) => {
-  try {
-    const res = await client.query(`
-      SELECT 1 FROM ${tableName}
-        WHERE EXISTS (
-          SELECT 1 FROM ${tableName}
-          LIMIT 1
-        ) LIMIT 1;
-    `);
-    return true;
-  } catch (e: any) {
-    return false;
-  }
 };
 
 export const seedPhotos = async (
