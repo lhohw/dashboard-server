@@ -61,6 +61,12 @@ export const Photo = z.object({
 });
 export type Photo = z.infer<typeof Photo>;
 
+export const Heading = z.object({
+  tagName: z.string(),
+  textContent: z.string(),
+});
+export type Heading = z.infer<typeof Heading>;
+
 export const Post = z
   .object({
     id: z.string().uuid(),
@@ -70,6 +76,92 @@ export const Post = z
     title: z.string(),
     body: z.instanceof(Uint8Array),
     category: z.string(),
+    headings: z.array(Heading),
   })
   .merge(Photo);
 export type Post = z.infer<typeof Post>;
+
+export const PrimitiveKey = z.enum([
+  "string",
+  "number",
+  "bigint",
+  "boolean",
+  "symbol",
+  "null",
+  "undefined",
+]);
+export type PrimitiveKey = z.infer<typeof PrimitiveKey>;
+export const ZodPrimitive = z.union([
+  z.string(),
+  z.number(),
+  z.bigint(),
+  z.boolean(),
+  z.symbol(),
+  z.null(),
+  z.undefined(),
+]);
+export type Primitive = z.infer<typeof ZodPrimitive>;
+
+export const PGBuiltinsTypes = z.enum([
+  "BOOL",
+  "BYTEA",
+  "CHAR",
+  "INT8",
+  "INT2",
+  "INT4",
+  "REGPROC",
+  "TEXT",
+  "OID",
+  "TID",
+  "XID",
+  "CID",
+  "JSON",
+  "XML",
+  "PG_NODE_TREE",
+  "SMGR",
+  "PATH",
+  "POLYGON",
+  "CIDR",
+  "FLOAT4",
+  "FLOAT8",
+  "ABSTIME",
+  "RELTIME",
+  "TINTERVAL",
+  "CIRCLE",
+  "MACADDR8",
+  "MONEY",
+  "MACADDR",
+  "INET",
+  "ACLITEM",
+  "BPCHAR",
+  "VARCHAR",
+  "DATE",
+  "TIME",
+  "TIMESTAMP",
+  "TIMESTAMPTZ",
+  "INTERVAL",
+  "TIMETZ",
+  "BIT",
+  "VARBIT",
+  "NUMERIC",
+  "REFCURSOR",
+  "REGPROCEDURE",
+  "REGOPER",
+  "REGOPERATOR",
+  "REGCLASS",
+  "REGTYPE",
+  "UUID",
+  "TXID_SNAPSHOT",
+  "PG_LSN",
+  "PG_NDISTINCT",
+  "PG_DEPENDENCIES",
+  "TSVECTOR",
+  "TSQUERY",
+  "GTSVECTOR",
+  "REGCONFIG",
+  "REGDICTIONARY",
+  "JSONB",
+  "REGNAMESPACE",
+  "REGROLE",
+]);
+export type PGBuiltinsTypes = z.infer<typeof PGBuiltinsTypes>;

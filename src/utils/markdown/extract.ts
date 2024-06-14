@@ -1,9 +1,9 @@
 import type { Heading } from "const/definitions";
 import { frontmatterRegex, headingRegex } from "const/regex";
 
-export type Status = "draft" | "ready";
+export type MarkdownStatus = "draft" | "ready";
 export type MarkdownMetadata = {
-  frontmatter: Record<string, string> & { status: Status };
+  frontmatter: Record<string, string> & { status: MarkdownStatus };
   slug: string;
   category: string;
 };
@@ -32,7 +32,7 @@ export const extractMetadata = (
   return {
     frontmatter: {
       ...frontmatter,
-      status: frontmatter.status as Status,
+      status: frontmatter.status as MarkdownStatus,
     },
     slug,
     category,
@@ -46,6 +46,7 @@ export const extractFrontmatter = (text: string) => {
     const idx = item.indexOf(":");
     const key = item.slice(0, idx).trim();
     item = item.slice(idx + 1).trim();
+
     return {
       ...acc,
       [key]: item,
@@ -61,13 +62,12 @@ export const extractHeadings = (markdown: string): Heading[] => {
   while ((matched = headingRegex.exec(markdown))) {
     const [, sharp, textContent] = matched;
     const tagName = `h${sharp.length}`;
+
     headings.push({
       tagName,
-      textContent: textContent.replace(/\//g, ""),
+      textContent,
     });
   }
-  console.log("headings replaced");
-  console.log(headings);
 
   return headings;
 };

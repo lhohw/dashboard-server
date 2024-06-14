@@ -1,5 +1,6 @@
 import type { Next } from "koa";
 import type { RouterContext } from "@koa/router";
+import { z } from "zod";
 import {
   insertPost,
   deletePost,
@@ -8,7 +9,7 @@ import {
   updatePost,
 } from "lib/posts";
 import { Post } from "const/definitions";
-import { serializeMarkdown } from "utils/markdown";
+import { serialize } from "utils/markdown";
 
 type PostState = {
   post?: Post;
@@ -48,8 +49,14 @@ export const write = async (ctx: PostContext) => {
 
   try {
     const { title, slug, category } = requestBody;
-    const compressed = await serializeMarkdown(category, slug);
-    const res = await insertPost({ title, slug, body: compressed, category });
+    const { compressed, headings } = await serialize(category, slug);
+    const res = await insertPost({
+      title,
+      slug,
+      body: compressed,
+      category,
+      headings,
+    });
     ctx.response.body = res;
   } catch (e: any) {
     ctx.throw(500, e);
@@ -106,9 +113,15 @@ export const remove = async (ctx: PostContext) => {
  * PATCH api/posts/:id
  */
 export const update = async (ctx: PostContext) => {
-  let requestBody: Partial<Post>;
+  let requestBody: Partial<Post> & { recordUpdate?: boolean };
   try {
-    requestBody = Post.partial().parse(ctx.request.body);
+    requestBody = Post.partial()
+      .merge(
+        z.object({
+          recordUpdate: z.boolean().optional(),
+        })
+      )
+      .parse(ctx.request.body);
   } catch (e: any) {
     ctx.status = 400;
     ctx.message = e.message;
@@ -121,15 +134,21 @@ export const update = async (ctx: PostContext) => {
       title = post.title,
       slug = post.slug,
       category = post.category,
+      recordUpdate = true,
     } = requestBody;
-    const serialized = await serializeMarkdown(category, slug);
-    const res = await updatePost({
-      ...post,
-      title,
-      slug,
-      body: serialized,
-      category,
-    });
+
+    const { compressed, headings } = await serialize(category, slug);
+    const res = await updatePost(
+      {
+        ...post,
+        title,
+        slug,
+        body: compressed,
+        category,
+        headings,
+      },
+      recordUpdate
+    );
     ctx.response.body = res;
   } catch (e: any) {
     ctx.throw(500, e);

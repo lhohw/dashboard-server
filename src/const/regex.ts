@@ -33,3 +33,6 @@ const imgPropsRegex = [srcRegex, titleRegex, altRegex, styleRegex]
 export const imgRegex = new RegExp(`\\s*\\<img(${imgPropsRegex})+`);
 export const base64ImgRegex =
   /data:image\/(?:jp[e]?g|png|svg|avif|webp);base64,[A-Za-z0-9\+\/=]+"/;
+
+export const headingRegex =
+  /^([#]+) ([ 가-힣ㄱ-ㅎㅏ-ㅣ0-9a-zA-Z~!@#$%^&*()_+-=\[\]\\|;':",./<>?]+)$/gm;
