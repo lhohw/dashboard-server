@@ -56,7 +56,7 @@ export const insertPost = async ({
       blur_hash,
       user_name,
       user_link,
-      headings,
+      JSON.stringify(headings),
     ],
   });
 
