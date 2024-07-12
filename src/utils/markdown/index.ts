@@ -1,6 +1,5 @@
-import { join } from "node:path";
 import { readdirSync } from "node:fs";
-import { markdownPath } from "const/path";
+import { getPath } from "utils/path";
 import { compress } from "utils/compress";
 import {
   extractFrontmatter,
@@ -16,7 +15,7 @@ export const isReady = (text: string) => {
 };
 
 export const getMarkdown = async (category: string, slug: string) => {
-  const path = join(markdownPath, category, slug + ".md");
+  const path = getPath("markdown", category, slug + ".md");
   const file = Bun.file(path);
   const text = await file.text();
   if (!isReady(text)) throw new Error("Post is not on ready state");
@@ -39,14 +38,14 @@ export const serialize = async (category: string, slug: string) => {
 };
 
 export const fetchAllMarkdownMetadataOnReady = async () => {
-  const path = markdownPath;
+  const path = getPath("markdown");
   const dirs = readdirSync(path).filter(
     (e) => !e.endsWith(".md") && e !== "draft"
   );
 
   const markdownMetadatas: MarkdownMetadata[] = [];
   for (const category of dirs) {
-    const categoryPath = `${markdownPath}/${category}`;
+    const categoryPath = getPath("markdown", category);
     const files = readdirSync(categoryPath);
     const markdowns = await Promise.all(
       files.map(async (slug) => {
