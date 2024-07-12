@@ -9,7 +9,7 @@ export const frontmatterRegex =
 export const inlineStyleRegex = /"?([-\w]+)\s*:\s*([\w\d'"#.\[\]\-]*);?"?/g;
 
 export const styleRegex = /style="[\d\w:\s\-#;]*"/g;
-export const JSXStyleRegex = /style={{[\s\d\w:\-#,']*}}/;
+export const JSXStyleRegex = /style={{[\s\d\w:\-#,'"]*}}/;
 
 export const commentRegex =
   /<!--[\d\w\s가-힣ㄱ-ㅎㅏ-ㅣ!@#$%^&*\(\)-=_+\[\]\{\}\\|;':",./<>?`~]*-->/g;
