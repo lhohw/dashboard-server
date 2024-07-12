@@ -7,37 +7,6 @@ export type MarkdownMetadata = {
   slug: string;
   category: string;
 };
-export const extractMetadata = (
-  filename: string,
-  text: string,
-  category: string
-): MarkdownMetadata => {
-  const slug = filename.replace(/.md$/, "");
-  const _default: MarkdownMetadata = {
-    frontmatter: { status: "draft" },
-    slug,
-    category,
-  };
-  if (!text.startsWith("---")) return _default;
-
-  const frontmatter = extractFrontmatter(text);
-  if (!frontmatter) return _default;
-
-  if (!frontmatter.status) {
-    throw new Error(
-      `Prepared post ${filename} has no status(${frontmatter.status}) or title(${frontmatter.title})`
-    );
-  }
-
-  return {
-    frontmatter: {
-      ...frontmatter,
-      status: frontmatter.status as MarkdownStatus,
-    },
-    slug,
-    category,
-  };
-};
 
 export const extractFrontmatter = (text: string) => {
   const matched = text.match(frontmatterRegex);

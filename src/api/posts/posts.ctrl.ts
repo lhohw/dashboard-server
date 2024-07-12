@@ -9,7 +9,7 @@ import {
   updatePost,
 } from "lib/posts";
 import { Post } from "const/definitions";
-import { serialize } from "utils/markdown";
+import { serialize } from "utils/markdown/serialize";
 import { decompress } from "utils/compress";
 
 type PostState = {
