@@ -138,7 +138,7 @@ export const update = async (ctx: PostContext) => {
       title = post.title,
       slug = post.slug,
       category = post.category,
-      recordUpdate = true,
+      recordUpdate = false,
     } = requestBody;
 
     const { compressed, headings } = await serialize(category, slug);

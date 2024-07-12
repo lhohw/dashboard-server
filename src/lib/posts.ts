@@ -75,7 +75,7 @@ export const insertPost = async ({
   };
 };
 
-export const updatePost = async (post: Post, recordUpdate = true) => {
+export const updatePost = async (post: Post, recordUpdate = false) => {
   const client = await DBPool.getInstance();
 
   const {
