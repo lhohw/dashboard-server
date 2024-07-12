@@ -9,6 +9,7 @@ export const frontmatterRegex =
 export const inlineStyleRegex = /"?([-\w]+)\s*:\s*([\w\d'"#.\[\]\-]*);?"?/g;
 
 export const styleRegex = /style="[\d\w:\s\-#;]*"/g;
+export const JSXStyleRegex = /style={{[\s\d\w:\-#,']*}}/;
 
 export const commentRegex =
   /<!--[\d\w\s가-힣ㄱ-ㅎㅏ-ㅣ!@#$%^&*\(\)-=_+\[\]\{\}\\|;':",./<>?`~]*-->/g;
@@ -34,7 +35,12 @@ export const base64SrcRegex =
   /src="data:image\/(?:jp[e]?g|png|svg|avif|webp);base64,[A-Za-z0-9\+\/=]+"/;
 const titleRegex = /title="[_\-\.@\/\w\d!@#\$%\^&\*\(\)\[\]\{\},\?]+"/;
 const altRegex = /alt="[_\-\.\@\/\w\d\(\)\[\]\{\},\?가-힣ㄱ-ㅎㅏ-ㅣ\s]+"/;
-export const imgPropsRegexSource = [srcRegex, titleRegex, altRegex, styleRegex]
+export const imgPropsRegexSource = [
+  srcRegex,
+  titleRegex,
+  altRegex,
+  JSXStyleRegex,
+]
   .map((regex) => " " + regex.source)
   .join("|");
 export const imgRegex = new RegExp(
