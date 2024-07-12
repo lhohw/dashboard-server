@@ -58,27 +58,27 @@ export const transformReference = (text: string) => {
 };
 
 export const transformAllImage = async (text: string): Promise<string> => {
-  try {
-    text = await transformImage(text);
-    return transformAllImage(text);
-  } catch (e) {
-    return text;
+  let matched;
+  const regex = new RegExp(imgRegex.source, "mg");
+
+  while ((matched = regex.exec(text))) {
+    let image = matched[0];
+    if (!image.endsWith("/>")) image = addClosingTag(image);
+    image = image.replace(srcRegex, `src="${await srcToBase64(image)}"`);
+    text = text.replace(matched[0], image);
   }
+
+  return text;
 };
 
-export const transformImage = async (text: string) => {
-  let image = text.match(imgRegex)?.[0];
-  if (!image) throw new Error("source not matched");
-
-  if (!image.endsWith("/>")) {
-    console.log(`\n-- closing tag added --\n${image.trim()}\n`);
-    text = text.replace(image, addClosingTag(image));
+export const srcToBase64 = async (source: string) => {
+  const matched = source.match(srcRegex);
+  if (!matched) {
+    console.error("source not matched");
+    return source;
   }
 
-  const matched = image.match(srcRegex);
-  if (!matched) throw new Error("source not matched");
-
-  const [matchedStr, src, ext] = matched;
+  const [, src, ext] = matched;
   const splitted = src.split("/");
   const filename = splitted.pop()!;
   const img = Bun.file(`${process.cwd()}/assets/images/${filename}.${ext}`);
@@ -86,7 +86,7 @@ export const transformImage = async (text: string) => {
   const resized = await resizeImage(buf);
   const base64 = toBase64(resized);
 
-  return text.replace(matchedStr, `src="data:image/webp;base64,${base64}"`);
+  return `data:image/webp;base64,${base64}`;
 };
 
 export const addClosingTag = (text: string) => {

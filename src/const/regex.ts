@@ -25,17 +25,17 @@ export const markdownSerializerRegex = new RegExp(
 
 export const srcRegex =
   /src="([_\-\.@\/\w\d\(\)\[\]\{\},\?]+).(jp[e]?g|png|svg|avif|webp)"/;
+export const base64SrcRegex =
+  /src="data:image\/(?:jp[e]?g|png|svg|avif|webp);base64,[A-Za-z0-9\+\/=]+"/;
 const titleRegex = /title="[_\-\.@\/\w\d!@#\$%\^&\*\(\)\[\]\{\},\?]+"/;
 const altRegex = /alt="[_\-\.\@\/\w\d\(\)\[\]\{\},\?가-힣ㄱ-ㅎㅏ-ㅣ\s]+"/;
-const imgPropsRegex = [srcRegex, titleRegex, altRegex, styleRegex]
+export const imgPropsRegexSource = [srcRegex, titleRegex, altRegex, styleRegex]
   .map((regex) => " " + regex.source)
   .join("|");
 export const imgRegex = new RegExp(
-  `\\s*\\<img(${imgPropsRegex})+\\s*/?>$`,
+  `\\s*<img(${imgPropsRegexSource}| ${base64SrcRegex.source})+\\s*/?>$`,
   "m"
 );
-export const base64ImgRegex =
-  /data:image\/(?:jp[e]?g|png|svg|avif|webp);base64,[A-Za-z0-9\+\/=]+"/;
 
 export const headingRegex =
   /^([#]+) ([ 가-힣ㄱ-ㅎㅏ-ㅣ0-9a-zA-Z~!@#$%^&*()_+-=\[\]\\|;':",./<>?]+)$/gm;

@@ -214,7 +214,7 @@ describe("img", () => {
     expect(ext).toBe("webp");
   });
   test(`<img title="i-m-a-g-e" src="../../assets/img.webp"`, () => {
-    const img = `<img title="i-m-a-g-e" src="../../assets/img.webp"`;
+    const img = `<img title="i-m-a-g-e" src="../../assets/img.webp" >`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
     const src = matched?.[2] || "";
@@ -223,7 +223,7 @@ describe("img", () => {
     expect(ext).toBe("webp");
   });
   test(`<img title="i-m-a-g-e!@#A3$%^" style="display: flex;" src="../../assets/img.webp"`, () => {
-    const img = `<img title="i-m-a-g-e!@#A3$%^" style="display: flex;" src="../../assets/img.webp"`;
+    const img = `<img title="i-m-a-g-e!@#A3$%^" style="display: flex;" src="../../assets/img.webp">`;
     const matched = img.match(imgRegex);
     expect(matched).toBeArray();
     const src = matched?.[2] || "";

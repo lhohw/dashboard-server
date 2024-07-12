@@ -1,10 +1,11 @@
 import { describe, test, expect } from "bun:test";
-import { base64ImgRegex } from "const/regex";
+import { base64SrcRegex, imgPropsRegexSource } from "const/regex";
 import { extractFrontmatter } from "utils/markdown/extract";
 import {
+  addClosingTag,
   inlineStyleToJSX,
   transformAllImage,
-  transformImage,
+  srcToBase64,
   transformReference,
 } from "utils/markdown/transform";
 import { toCamelCase } from "utils/string";
@@ -127,31 +128,78 @@ describe("serialize markdown", () => {
       const text = `<div id="prototype-graph-partial">
         <img src="../../images/prototype-graph-partial.png" style="max-width: 600px;" alt="프로토타입 그래프 일부분" />
       </div>`;
-      const transformed = await transformImage(text);
-      expect(transformed).toMatch(base64ImgRegex);
+      const transformed = await srcToBase64(text);
+      expect(`src="${transformed}"`).toMatch(base64SrcRegex);
     });
     test("prototype-graph-partial.png", async () => {
       const text = `<div id="prototype-graph">
       <img src="../../images/prototype-graph.png" alt="프로토타입 그래프" />
-    </div>`;
-      const transformed = await transformImage(text);
-      expect(transformed).toMatch(base64ImgRegex);
+      </div>`;
+      const transformed = await srcToBase64(text);
+      expect(`src="${transformed}"`).toMatch(base64SrcRegex);
     });
     test("img with style", async () => {
       const text = `<div>
         <img src="../../images/prototype-graph.png" style="display: flex;" />
       </div>
-
+  
       markdown text
       ...
-
+  
       <div>
         <img src="../../images/prototype-graph.png" style="display: flex;" />
       </div>`;
+
       const transformed = await transformAllImage(text);
-      expect(
-        transformed.match(new RegExp(base64ImgRegex.source, "g"))
-      ).toHaveLength(2);
+      expect(transformed.match(new RegExp(base64SrcRegex, "mg"))).toHaveLength(
+        2
+      );
+    });
+    test("add closing tag", async () => {
+      const text = `<div>
+        <img src="../../images/splitted-binary-data.png" style="display: flex;"/>
+      </div>
+  
+      markdown text
+      ...
+  
+      <div>
+        <img src="../../images/third-party-cookie.png" style="display: flex;"/>
+      </div>`;
+
+      const transformed = await transformAllImage(text);
+      const imgsRegex = new RegExp(
+        `\\s*<img(${imgPropsRegexSource}| ${base64SrcRegex.source})+\\s*/?>$`,
+        "mg"
+      );
+
+      const matched = transformed.match(imgsRegex);
+      expect(matched).toBeTruthy();
+      expect(matched).toHaveLength(2);
+      expect(matched?.every((m) => m.endsWith("/>"))).toBeTrue();
+    });
+  });
+
+  describe("ends with />", () => {
+    test(`<img src="">`, () => {
+      const text = `<img src="">`;
+      const actual = addClosingTag(text);
+      expect(actual).toBe(`<img src=""/>`);
+    });
+    test(`<img src="" >`, () => {
+      const text = `<img src="" >`;
+      const actual = addClosingTag(text);
+      expect(actual).toBe(`<img src="" />`);
+    });
+    test(`<img src=""`, () => {
+      const text = `<img src=""`;
+      const actual = addClosingTag(text);
+      expect(actual).toBe(`<img src=""/>`);
+    });
+    test(`<img src="" />`, () => {
+      const text = `<img src="" />`;
+      const actual = addClosingTag(text);
+      expect(actual).toBe(`<img src="" />`);
     });
   });
 });
