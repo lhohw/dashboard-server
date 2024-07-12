@@ -23,8 +23,8 @@ export const getMarkdown = async (category: string, slug: string) => {
   return text;
 };
 
-export const serializeMarkdown = async (markdown: string) => {
-  const transformed = transform(markdown);
+export const serializeMarkdown = async (markdown: string, category: string) => {
+  const transformed = transform(markdown, category);
   const imgTransformed = await transformAllImage(transformed);
   const compressed = compress(imgTransformed);
   return compressed;
@@ -32,8 +32,9 @@ export const serializeMarkdown = async (markdown: string) => {
 
 export const serialize = async (category: string, slug: string) => {
   const markdown = await getMarkdown(category, slug);
-  const compressed = await serializeMarkdown(markdown);
+  const compressed = await serializeMarkdown(markdown, category);
   const headings = extractHeadings(markdown);
+
   return { compressed, headings };
 };
 

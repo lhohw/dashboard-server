@@ -1,7 +1,10 @@
+import path from "path";
 import {
   imgRegex,
   inlineStyleRegex,
+  linkRegex,
   markdownSerializerRegex,
+  mdRegex,
   srcRegex,
 } from "const/regex";
 import { resizeImage } from "utils/image";
@@ -10,13 +13,14 @@ import { toCamelCase } from "utils/string";
 
 /**
  * Mulitple responsibility for performance reason
- * remove comment | inline style to JSX | transform reference
+ * remove comment | inline style to JSX | transform reference | link
  * */
-export const transform = (text: string) => {
+export const transform = (text: string, category: string) => {
   return text.replace(markdownSerializerRegex, (matched) => {
     if (isComment(matched)) return "";
     if (isStyle(matched)) return inlineStyleToJSX(matched);
     if (isReference(matched)) return transformReference(matched);
+    if (isLink(matched)) return transformLink(matched, category);
     throw new Error(`serialization failed\n${matched}`);
   });
 };
@@ -24,6 +28,7 @@ export const transform = (text: string) => {
 const isComment = (text: string) => text.startsWith("<!--");
 const isStyle = (text: string) => text.startsWith("style");
 const isReference = (text: string) => text.startsWith("## 참조");
+const isLink = (text: string) => text.startsWith("[");
 
 export const inlineStyleToJSX = (text: string) => {
   let json = "";
@@ -91,4 +96,22 @@ export const srcToBase64 = async (source: string) => {
 
 export const addClosingTag = (text: string) => {
   return text.replace(/[\/>]*$/, "") + "/>";
+};
+
+export const transformLink = (text: string, category: string) => {
+  const [, title, src] = text.match(linkRegex)!;
+  if (src.startsWith("http")) return text;
+
+  const route = path.join(`${category}`, src);
+  let [cat, slug] = route.split("/");
+  if (!cat || !slug)
+    throw new Error(`invalid - ${text}\ncategory: ${cat} | slug: ${slug}`);
+
+  const matched = slug.match(mdRegex);
+  if (matched) {
+    const hash = matched[1] || "";
+    slug = slug.replace(matched[0], hash);
+  }
+
+  return `[${title}](/post?category=${cat}&slug=${slug})`;
 };

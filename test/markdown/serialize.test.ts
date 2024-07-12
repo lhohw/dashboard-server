@@ -7,6 +7,7 @@ import {
   transformAllImage,
   srcToBase64,
   transformReference,
+  transformLink,
 } from "utils/markdown/transform";
 import { toCamelCase } from "utils/string";
 
@@ -200,6 +201,31 @@ describe("serialize markdown", () => {
       const text = `<img src="" />`;
       const actual = addClosingTag(text);
       expect(actual).toBe(`<img src="" />`);
+    });
+  });
+
+  describe("transform links", () => {
+    test("[글](../performance/RAIL-MODEL.md#response)", () => {
+      const category = "JavaScript";
+      const link = `[글](../performance/RAIL-MODEL.md#response)`;
+      const actual = transformLink(link, category);
+      const expected =
+        "[글](/post?category=performance&slug=RAIL-MODEL#response)";
+      expect(actual).toBe(expected);
+    });
+    test("[글](./RAIL-MODEL.md#response)", () => {
+      const category = "performance";
+      const link = `[글](./RAIL-MODEL.md#response)`;
+      const actual = transformLink(link, category);
+      const expected = `[글](/post?category=performance&slug=RAIL-MODEL#response)`;
+      expect(actual).toBe(expected);
+    });
+    test("[글](https://)", () => {
+      const category = "performance";
+      const link = `[글](https://)`;
+      const actual = transformLink(link, category);
+      const expected = "[글](https://)";
+      expect(actual).toBe(expected);
     });
   });
 });

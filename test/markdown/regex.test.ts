@@ -5,6 +5,7 @@ import {
   referenceRegex,
   styleRegex,
   imgRegex,
+  linkRegex,
 } from "const/regex";
 
 describe("match comment", () => {
@@ -243,5 +244,38 @@ describe("img", () => {
     const ext = matched?.[3] || "";
     expect(src).toBe("../../assets/img");
     expect(ext).toBe("webp");
+  });
+});
+
+describe("links", () => {
+  test("[글](../performance/RAIL-model.md)", () => {
+    const link = "[글](../performance/RAIL-model.md)";
+    const matched = link.match(linkRegex);
+    expect(matched).toBeArray();
+
+    const [, title, src] = matched!;
+    expect(title).toBe("글");
+    expect(src).toBe("../performance/RAIL-model.md");
+  });
+  test("[글](../performance/RAIL-model.md#response)", () => {
+    const link = "[글](../performance/RAIL-model.md#response)";
+    const matched = link.match(linkRegex);
+    expect(matched).toBeArray();
+
+    const [, title, src] = matched!;
+    expect(title).toBe("글");
+    expect(src).toBe("../performance/RAIL-model.md#response");
+  });
+  test("[글](https://blhog.vercel.app/posts/performance/RAIL-model.md#response)", () => {
+    const link =
+      "[글](https://blhog.vercel.app/posts/performance/RAIL-model.md#response)";
+    const matched = link.match(linkRegex);
+    expect(matched).toBeArray();
+
+    const [, title, src] = matched!;
+    expect(title).toBe("글");
+    expect(src).toBe(
+      "https://blhog.vercel.app/posts/performance/RAIL-model.md#response"
+    );
   });
 });
