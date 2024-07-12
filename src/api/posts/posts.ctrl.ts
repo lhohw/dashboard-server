@@ -10,6 +10,7 @@ import {
 } from "lib/posts";
 import { Post } from "const/definitions";
 import { serialize } from "utils/markdown";
+import { decompress } from "utils/compress";
 
 type PostState = {
   post?: Post;
@@ -91,7 +92,10 @@ export const getPostById = async (ctx: PostContext, next: Next) => {
  * GET api/posts/:id
  */
 export const read = async (ctx: PostContext) => {
-  ctx.body = ctx.state.post;
+  ctx.body = {
+    ...ctx.state.post,
+    body: decompress(ctx.state.post!.body),
+  };
 };
 
 /**
