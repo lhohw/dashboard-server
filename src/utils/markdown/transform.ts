@@ -100,7 +100,8 @@ export const addClosingTag = (text: string) => {
 
 export const transformLink = (text: string, category: string) => {
   const [, title, src] = text.match(linkRegex)!;
-  if (src.startsWith("http")) return text;
+
+  if (src.startsWith("http") || src.startsWith("#")) return text;
 
   const route = path.join(`${category}`, src);
   let [cat, slug] = route.split("/");
