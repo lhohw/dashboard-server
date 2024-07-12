@@ -1,4 +1,5 @@
 import {
+  imgRegex,
   inlineStyleRegex,
   markdownSerializerRegex,
   srcRegex,
@@ -66,7 +67,15 @@ export const transformAllImage = async (text: string): Promise<string> => {
 };
 
 export const transformImage = async (text: string) => {
-  const matched = text.match(srcRegex);
+  let image = text.match(imgRegex)?.[0];
+  if (!image) throw new Error("source not matched");
+
+  if (!image.endsWith("/>")) {
+    console.log(`\n-- closing tag added --\n${image.trim()}\n`);
+    text = text.replace(image, addClosingTag(image));
+  }
+
+  const matched = image.match(srcRegex);
   if (!matched) throw new Error("source not matched");
 
   const [matchedStr, src, ext] = matched;
@@ -76,5 +85,10 @@ export const transformImage = async (text: string) => {
   const buf = await img.arrayBuffer();
   const resized = await resizeImage(buf);
   const base64 = toBase64(resized);
+
   return text.replace(matchedStr, `src="data:image/webp;base64,${base64}"`);
+};
+
+export const addClosingTag = (text: string) => {
+  return text.replace(/[\/>]*$/, "") + "/>";
 };
