@@ -1,52 +1,119 @@
+import { getCharRegex } from "utils/regex";
+
+export const numberRegex = /\d/;
+export const englishLowerRegex = /a-z/;
+export const englishUpperRegex = /A-Z/;
+export const koreanRegex = /가-힣ㄱ-ㅎㅏ-ㅣ/;
+export const spaceRegex = /\s/;
+export const specialCharRegex = /`!@#%&_=;:,<.>~\$\*\^\+\/\?\\\|\-/;
+export const charRegex = getCharRegex();
+export const bracketRegex = /\[\]\(\)\{\}/;
+export const quotationMarkRegex = /'"/;
+
 export const dateRegex =
   /^(\d{2}|\d{4})[-.\\/](\d{1,2})[-.\\/](\d{1,2})(T(\d{2}):(\d{2}):(\d{2}).\d+Z)?$/;
 
 export const dateSeperatorRegex = /-|\.|\//g;
 
-export const frontmatterRegex =
-  /^---\n\s*([\-\d\w\s가-힣ㄱ-ㅎㅏ-ㅣ!@#$%^&*\(\)_=+\{\}\[\]\\\|;':",.<>]*)\n\s*---\n?/;
+export const frontmatterRegex = new RegExp(
+  `^---\\n\\s*((?:[${charRegex.source}]+)\\s*:\\s*(?:[${charRegex.source}${spaceRegex.source}${bracketRegex.source}${quotationMarkRegex.source}]*\n\\s*))+\\s*---[\n]?`
+);
 
-export const inlineStyleRegex = /"?([-\w]+)\s*:\s*([\w\d'"#.\[\]\-]*);?"?/g;
+/**
+ * @example
+ * width: 30
+ * height: "30px"
+ * -webkit-animation-delay: 2s
+ */
+export const inlineStylePropertyRegex =
+  /((?:-?[a-zA-z])+):\s*([a-z0-9#\[\]\-\(\),\s%.]+)[;]?/;
+export const inlineStyleRegex = new RegExp(
+  `style="((?:\\s*${inlineStylePropertyRegex.source})+)"`
+);
 
-export const styleRegex = /style="[\d\w:\s\-#;]*"/g;
-export const JSXStyleRegex = /style={{[\s\d\w:\-#,'"]*}}/;
+/**
+ * regex for JSX style property
+ *
+ * @example
+ *  <div
+ *    style={{
+ *      width: 30,
+ *      height: "30px",
+ *      color: "#fafed1",
+ *      WebkitAlignItems: "flex-start",
+ *      MozAnimationDelay: "-moz-initial",
+ *      background: "hsla(128, 30%, 72%, 0.12)"
+ *    }}
+ *  />
+ */
+export const JSXStylePropertyRegex =
+  /((?:[A-Z]?[a-z]+)+)\s*:\s*(?:'|")?([\sa-zA-Z0-9#%.,\(\)\-]+)(?:'|")?/;
+export const JSXStyleRegex = new RegExp(
+  `style={{((?:\\s*${JSXStylePropertyRegex.source}[,]?)+)\\s*}}`
+);
 
-export const commentRegex =
-  /<!--[\d\w\s가-힣ㄱ-ㅎㅏ-ㅣ!@#$%^&*\(\)-=_+\[\]\{\}\\|;':",./<>?`~]*-->/g;
+/**
+ * @example
+ * <!-- ... -->
+ */
+export const commentRegex = new RegExp(
+  `<!--([${charRegex.source}${bracketRegex.source}\\s]*)-->`
+);
 
-export const referenceRegex =
-  /## 참조\n\s*(?:- [<>\[\]\(\)\{\}!@#\$%\^&\*\-_=\+;':",.\/\?\\\|\w\d가-힣ㄱ-ㅎㅏ-ㅣ]+\n?[ ]*)+/g;
+/**
+ * @example
+ * ## 참조
+ * - https://...
+ * - [title](link)
+ */
+export const referenceRegex = new RegExp(
+  `## 참조\n\\s*(?:- [${charRegex.source}${bracketRegex.source}]+\n?[ ]*)+`
+);
 
-export const linkRegex =
-  /\[([a-zA-Z\d\s가-힣ㄱ-ㅎㅏ-ㅣ!@#$%^&*()_+-=\[\\|;':",./<>?₩~`]+)\]\(([./a-z-A-Z\d가-힣`~!@#$%^&*(-=_+\[\]\\|;':",./<>?]+)\)/;
-export const mdRegex =
-  /.md(#[./a-z-A-Z\d가-힣`~!@#$%^&*(-=_+\[\]\\|;':",./<>?]+)?$/;
+/**
+ * @example
+ * [title](link)
+ */
+export const linkRegex = new RegExp(
+  `\\[\([${charRegex.source}${bracketRegex.source}\\s]+\)\\]\\(\([${charRegex.source}]+\)\\)`
+);
+
+export const mdRegex = new RegExp(`.md(#[${charRegex.source}]+)\?`);
 
 export const markdownSerializerRegex = new RegExp(
-  [styleRegex, commentRegex, referenceRegex, linkRegex]
+  [inlineStyleRegex, commentRegex, referenceRegex, linkRegex]
     .map((regex) => regex.source)
     .join("|"),
   "g"
 );
 
-export const srcRegex =
-  /src="([_\-\.@\/\w\d\(\)\[\]\{\},\?]+).(jp[e]?g|png|svg|avif|webp)"/;
+export const srcRegex = new RegExp(
+  `src="([${charRegex.source}]+).(jp[e]?g|png|svg|avif|webp)"`
+);
 export const base64SrcRegex =
-  /src="data:image\/(?:jp[e]?g|png|svg|avif|webp);base64,[A-Za-z0-9\+\/=]+"/;
-const titleRegex = /title="[_\-\.@\/\w\d!@#\$%\^&\*\(\)\[\]\{\},\?]+"/;
-const altRegex = /alt="[_\-\.\@\/\w\d\(\)\[\]\{\},\?가-힣ㄱ-ㅎㅏ-ㅣ\s]+"/;
+  /src="data:image\/(jp[e]?g|png|svg|avif|webp);base64,([A-Za-z0-9\+\/=]+)"/;
+
+export const titleRegex = new RegExp(
+  `title="([${charRegex.source}${bracketRegex.source}\\s]+)"`
+);
+export const altRegex = new RegExp(
+  `alt="([${charRegex.source}${bracketRegex.source}\\s]+)"`
+);
+
 export const imgPropsRegexSource = [
   srcRegex,
   titleRegex,
   altRegex,
-  JSXStyleRegex,
+  inlineStyleRegex,
 ]
-  .map((regex) => " " + regex.source)
+  .map((regex) => "\\s*" + regex.source)
   .join("|");
+
 export const imgRegex = new RegExp(
-  `\\s*<img(${imgPropsRegexSource}| ${base64SrcRegex.source})+\\s*/?>$`,
-  "m"
+  `<img ((?:\\s*(?:${srcRegex.source}|${titleRegex.source}|${altRegex.source}|${inlineStyleRegex.source}|${base64SrcRegex.source}))+)\\s*/?>`
 );
 
-export const headingRegex =
-  /^([#]+) ([ 가-힣ㄱ-ㅎㅏ-ㅣ0-9a-zA-Z~!@#$%^&*()_+-=\[\]\\|;':",./<>?]+)$/gm;
+export const headingRegex = new RegExp(
+  `^([#]+) ([${charRegex.source}${spaceRegex.source}${bracketRegex.source}${quotationMarkRegex.source}]+)$`,
+  "m"
+);
