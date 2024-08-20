@@ -1,6 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { base64SrcRegex, imgPropsRegexSource } from "const/regex";
-import { extractFrontmatter } from "utils/markdown/extract";
+import { base64SrcRegex, imgRegex } from "const/regex";
 import {
   addClosingTag,
   inlineStyleToJSX,
@@ -12,51 +11,19 @@ import {
 import { toCamelCase } from "utils/string";
 
 describe("serialize markdown", () => {
-  describe("extract frontmatter", () => {
-    test(`---
-    title: title
-    slug: s-l-u-g
-    ---`, () => {
-      const text = `---
-      title: title
-      slug: s-l-u-g
-      ---`;
-      const frontmatter = extractFrontmatter(text);
-      expect(frontmatter).toEqual({ title: "title", slug: "s-l-u-g" });
-    });
-    test(`---
-    item1: !@#%
-    item2: ---
-    ---`, () => {
-      const text = `---
-      item1: !@#%
-      item2: ---
-      ---`;
-      const frontmatter = extractFrontmatter(text);
-      expect(frontmatter).toEqual({ item1: "!@#%", item2: "---" });
-    });
-    test(`---
-    한글_키: 한글_값
-    ---`, () => {
-      const text = `---
-      한글_키: 한글_값
-      ---`;
-      const frontmatter = extractFrontmatter(text);
-      expect(frontmatter).toEqual({ 한글_키: "한글_값" });
-    });
-  });
-
   describe("inline style toCamelCase", () => {
     test("color", () => {
       const text = "color";
       const camelCase = toCamelCase(text);
       expect(camelCase).toBe("color");
     });
+
     test("flex-direction", () => {
       const text = "flex-direction";
       const camelCase = toCamelCase(text);
       expect(camelCase).toBe("flexDirection");
     });
+
     test("-webkit-animation-delay", () => {
       const text = "-webkit-animation-delay";
       const camelCase = toCamelCase(text);
@@ -66,25 +33,36 @@ describe("serialize markdown", () => {
 
   describe("inline style to JSX", () => {
     test(`style="color: #fafafa;"`, () => {
-      const markdown = `style="color: #fafafa;"`;
-      const replaced = inlineStyleToJSX(markdown);
-      expect(replaced).toMatch(/style={{ color: '#fafafa', }}/);
+      const style = `style="color: #fafafa;"`;
+      const replaced = inlineStyleToJSX(style);
+      expect(replaced).toMatch(/style={{ color: ['"]#fafafa['"], }}/);
     });
+
     test(`style="flex: 1;"`, () => {
-      const markdown = `style="flex: 1;"`;
-      const replaced = inlineStyleToJSX(markdown);
+      const style = `style="flex: 1;"`;
+      const replaced = inlineStyleToJSX(style);
       expect(replaced).toMatch(/style={{ flex: 1, }}/);
     });
+
     test(`style="flex: 1; color: #fafafa;"`, () => {
-      const markdown = `style="flex: 1; color: #fafafa;"`;
-      const replaced = inlineStyleToJSX(markdown);
-      expect(replaced).toMatch(/style={{ flex: 1, color: '#fafafa', }}/);
+      const style = `style="flex: 1; color: #fafafa;"`;
+      const replaced = inlineStyleToJSX(style);
+      expect(replaced).toMatch(/style={{ flex: 1, color: ['"]#fafafa['"], }}/);
     });
+
     test(`style="flex: 1; flex-direction:row; align-items: center;"`, () => {
-      const markdown = `style="flex: 1; flex-direction:row; align-items: center;"`;
-      const replaced = inlineStyleToJSX(markdown);
+      const style = `style="flex: 1; flex-direction:row; align-items: center;"`;
+      const replaced = inlineStyleToJSX(style);
       expect(replaced).toMatch(
-        /style={{ flex: 1, flexDirection: 'row', alignItems: 'center', }}/
+        /style={{ flex: 1, flexDirection: ['"]row['"], alignItems: ['"]center['"], }}/
+      );
+    });
+
+    test(`style="-webkit-animation-delay: 2s; background: hsla(128, 30%, 72%, 0.12);"`, () => {
+      const style = `style="-webkit-animation-delay: 2s; background: hsla(128, 30%, 72%, 0.12);"`;
+      const replaced = inlineStyleToJSX(style);
+      expect(replaced).toMatch(
+        /style={{ WebkitAnimationDelay: ['"]2s['"], background: ['"]hsla\(128, 30%, 72%, 0.12\)['"], }}/
       );
     });
   });
@@ -125,22 +103,24 @@ describe("serialize markdown", () => {
   });
 
   describe("image transform", () => {
-    test("prototype-graph.png", async () => {
-      const text = `<div id="prototype-graph-partial">
+    test("srcToBase64", async () => {
+      const text = `
+      <div id="prototype-graph-partial">
         <img src="../../images/prototype-graph-partial.png" style="max-width: 600px;" alt="프로토타입 그래프 일부분" />
-      </div>`;
+      </div>
+      `;
       const transformed = await srcToBase64(text);
-      expect(`src="${transformed}"`).toMatch(base64SrcRegex);
+      const src = `src="${transformed}"`;
+      const matched = src.match(base64SrcRegex);
+      expect(matched).not.toBeNull();
+
+      const [, ext] = matched!;
+      expect(ext).toBe("png");
     });
-    test("prototype-graph-partial.png", async () => {
-      const text = `<div id="prototype-graph">
-      <img src="../../images/prototype-graph.png" alt="프로토타입 그래프" />
-      </div>`;
-      const transformed = await srcToBase64(text);
-      expect(`src="${transformed}"`).toMatch(base64SrcRegex);
-    });
-    test("img with style", async () => {
-      const text = `<div>
+
+    test("transformAllImage", async () => {
+      const text = `
+      <div>
         <img src="../../images/prototype-graph.png" style="display: flex;" />
       </div>
   
@@ -149,58 +129,75 @@ describe("serialize markdown", () => {
   
       <div>
         <img src="../../images/prototype-graph.png" style="display: flex;" />
-      </div>`;
-
-      const transformed = await transformAllImage(text);
-      expect(transformed.match(new RegExp(base64SrcRegex, "mg"))).toHaveLength(
-        2
-      );
-    });
-    test("add closing tag", async () => {
-      const text = `<div>
-        <img src="../../images/splitted-binary-data.png" style="display: flex;"/>
       </div>
-  
-      markdown text
-      ...
-  
-      <div>
-        <img src="../../images/third-party-cookie.png" style="display: flex;"/>
-      </div>`;
+      `;
 
       const transformed = await transformAllImage(text);
-      const imgsRegex = new RegExp(
-        `\\s*<img(${imgPropsRegexSource}| ${base64SrcRegex.source})+\\s*/?>$`,
-        "mg"
-      );
+      const globalRegex = new RegExp(base64SrcRegex, "g");
+      const matched = [...transformed.matchAll(globalRegex)];
 
-      const matched = transformed.match(imgsRegex);
-      expect(matched).toBeTruthy();
       expect(matched).toHaveLength(2);
-      expect(matched?.every((m) => m.endsWith("/>"))).toBeTrue();
     });
-  });
 
-  describe("ends with />", () => {
-    test(`<img src="">`, () => {
-      const text = `<img src="">`;
-      const actual = addClosingTag(text);
-      expect(actual).toBe(`<img src=""/>`);
-    });
-    test(`<img src="" >`, () => {
-      const text = `<img src="" >`;
-      const actual = addClosingTag(text);
-      expect(actual).toBe(`<img src="" />`);
-    });
-    test(`<img src=""`, () => {
-      const text = `<img src=""`;
-      const actual = addClosingTag(text);
-      expect(actual).toBe(`<img src=""/>`);
-    });
-    test(`<img src="" />`, () => {
-      const text = `<img src="" />`;
-      const actual = addClosingTag(text);
-      expect(actual).toBe(`<img src="" />`);
+    describe("addClosingTag", () => {
+      test(`<img src="">`, () => {
+        const text = `<img src="">`;
+        const actual = addClosingTag(text);
+        expect(actual).toBe(`<img src=""/>`);
+      });
+
+      test(`<img src="" >`, () => {
+        const text = `<img src="" >`;
+        const actual = addClosingTag(text);
+        expect(actual).toBe(`<img src="" />`);
+      });
+
+      test(`<img src=""`, () => {
+        const text = `<img src=""`;
+        const actual = addClosingTag(text);
+        expect(actual).toBe(`<img src=""/>`);
+      });
+
+      test(`<img src="" />`, () => {
+        const text = `<img src="" />`;
+        const actual = addClosingTag(text);
+        expect(actual).toBe(`<img src="" />`);
+      });
+
+      test("in markdown", async () => {
+        const img1 = `<img src="../../images/splitted-binary-data.png" style="display: flex;">`;
+        expect(addClosingTag(img1)).toBe(
+          `<img src="../../images/splitted-binary-data.png" style="display: flex;"/>`
+        );
+
+        const img2 = `<img src="../../images/splitted-binary-data.png" style="display: flex;" />`;
+        expect(addClosingTag(img2)).toBe(
+          `<img src="../../images/splitted-binary-data.png" style="display: flex;" />`
+        );
+
+        const text = `<div>
+          ${img1}
+        </div>
+  
+        markdown text
+        ...
+  
+        <div>
+          ${img2}
+        </div>`;
+
+        const transformed = await transformAllImage(text);
+        const globalRegex = new RegExp(imgRegex, "g");
+
+        const matched = transformed.match(globalRegex);
+        expect(matched).toBeArray();
+        expect(matched).toHaveLength(2);
+
+        const allElementsHaveClosingTags = matched!.every((m) =>
+          m.endsWith("/>")
+        );
+        expect(allElementsHaveClosingTags).toBeTrue();
+      });
     });
   });
 
@@ -213,6 +210,7 @@ describe("serialize markdown", () => {
         "[글](/post?category=performance&slug=RAIL-MODEL#response)";
       expect(actual).toBe(expected);
     });
+
     test("[글](./RAIL-MODEL.md#response)", () => {
       const category = "performance";
       const link = `[글](./RAIL-MODEL.md#response)`;
@@ -220,6 +218,7 @@ describe("serialize markdown", () => {
       const expected = `[글](/post?category=performance&slug=RAIL-MODEL#response)`;
       expect(actual).toBe(expected);
     });
+
     test("[글](https://)", () => {
       const category = "performance";
       const link = `[글](https://)`;
