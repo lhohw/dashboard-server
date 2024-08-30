@@ -10,11 +10,6 @@ export const charRegex = getCharRegex();
 export const bracketRegex = /\[\]\(\)\{\}/;
 export const quotationMarkRegex = /'"/;
 
-export const dateRegex =
-  /^(\d{2}|\d{4})[-.\\/](\d{1,2})[-.\\/](\d{1,2})(T(\d{2}):(\d{2}):(\d{2}).\d+Z)?$/;
-
-export const dateSeperatorRegex = /-|\.|\//g;
-
 export const frontmatterRegex = new RegExp(
   `^---\\n\\s*((?:[${charRegex.source}]+)\\s*:\\s*(?:[${charRegex.source}${spaceRegex.source}${bracketRegex.source}${quotationMarkRegex.source}]*\n\\s*))+\\s*---[\n]?`
 );
