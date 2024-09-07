@@ -15,7 +15,7 @@ export const serializeMarkdown = async (
 };
 
 export const serialize = async (category: string, slug: string) => {
-  const markdown = await fetchMarkdown(category, slug + ".md");
+  const markdown = await fetchMarkdown(category, slug);
   const compressed = await serializeMarkdown(markdown, category, slug);
   const headings = extractHeadings(markdown);
 

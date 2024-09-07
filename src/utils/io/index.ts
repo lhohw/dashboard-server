@@ -30,6 +30,7 @@ export const fetchMarkdown = async (category: string, slug: string) => {
       return await file.text();
     }
 
+    console.error(`invalid path: ${p}`);
     throw new Error(e);
   }
 };
