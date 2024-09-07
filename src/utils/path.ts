@@ -1,17 +1,12 @@
-import path from "path";
+import _path from "path";
 
-const cwd = process.cwd();
-const assetPath = path.join(cwd, "assets");
-const markdownPath = path.join(assetPath, "markdown");
-const imagePath = path.join(assetPath, "images");
+const { ASSET_PATH, NODE_ENV } = process.env;
+const mode: "test" | "draft" | "published" =
+  NODE_ENV === "test" ? "test" : "draft";
+const assetPath = `${ASSET_PATH}/${mode}/`;
 
-export type PathTargets = "markdown" | "image";
-export const getPath = (target: PathTargets, ...filename: string[]) => {
-  if (target === "markdown") {
-    return path.join(markdownPath, ...(filename || ""));
-  } else if (target === "image") {
-    return path.join(imagePath, ...(filename || ""));
-  }
+const markdownPath = `${assetPath}/markdowns`;
 
-  throw new Error(`${target} is invalid`);
+export const getPostPath = (...path: string[]) => {
+  return _path.join(markdownPath, ...(path || []));
 };
