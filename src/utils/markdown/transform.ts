@@ -10,7 +10,7 @@ import {
 import { resizeImage } from "utils/image";
 import { toBase64 } from "utils/serialize";
 import { toCamelCase } from "utils/string";
-import { getPath } from "utils/path";
+import { getPostPath } from "utils/path";
 
 /**
  * transform markdowns to be compatible with client
@@ -110,7 +110,7 @@ export const srcToBase64 = async (source: string) => {
   const splitted = src.split("/");
 
   const filename = splitted.pop()!;
-  const imagePath = getPath("image", `${filename}.${ext}`);
+  const imagePath = getPostPath(`${filename}.${ext}`);
   const img = Bun.file(imagePath);
   const buf = await img.arrayBuffer();
   const resized = await resizeImage(buf);

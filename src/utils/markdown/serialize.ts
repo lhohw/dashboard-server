@@ -1,7 +1,7 @@
 import { compress } from "utils/compress";
 import { extractHeadings } from "utils/markdown/extract";
 import { transform, transformAllImage } from "utils/markdown/transform";
-import { getMarkdown } from "utils/io";
+import { fetchMarkdown } from "utils/io";
 
 export const serializeMarkdown = async (markdown: string, category: string) => {
   const transformed = transform(markdown, category);
@@ -11,7 +11,7 @@ export const serializeMarkdown = async (markdown: string, category: string) => {
 };
 
 export const serialize = async (category: string, slug: string) => {
-  const markdown = await getMarkdown(category, slug + ".md");
+  const markdown = await fetchMarkdown(category, slug + ".md");
   const compressed = await serializeMarkdown(markdown, category);
   const headings = extractHeadings(markdown);
 

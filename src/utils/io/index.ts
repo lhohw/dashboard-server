@@ -3,25 +3,35 @@ import {
   extractFrontmatter,
   type MarkdownMetadata,
 } from "utils/markdown/extract";
-import { getPath } from "utils/path";
+import { getPostPath } from "utils/path";
+import path from "path";
 
 export const readCategories = () => {
-  const markdownPath = getPath("markdown");
+  const markdownPath = getPostPath();
   const dirs = readdirSync(markdownPath);
   return dirs.filter((dir) => !dir.endsWith(".md") && dir !== "draft");
 };
 
-export const getFileNames = (category: string) => {
-  const path = getPath("markdown", category);
+export const readFileNames = (category: string) => {
+  const path = getPostPath(category);
   const fileNames = readdirSync(path);
   return fileNames;
 };
 
-export const getMarkdown = async (category: string, slug: string) => {
-  const path = getPath("markdown", category, slug);
-  const file = Bun.file(path);
-  const text = await file.text();
-  return text;
+export const fetchMarkdown = async (category: string, slug: string) => {
+  let p = getPostPath(category, slug);
+  let file = Bun.file(p);
+  try {
+    return await file.text();
+  } catch (e: any) {
+    if (e.name === "EISDIR") {
+      p = path.join(p, "index.md");
+      file = Bun.file(p);
+      return await file.text();
+    }
+
+    throw new Error(e);
+  }
 };
 
 export const fetchAllMarkdownMetadataOnReady = async () => {
@@ -30,11 +40,11 @@ export const fetchAllMarkdownMetadataOnReady = async () => {
   const markdownMetadatas: MarkdownMetadata[] = [];
 
   for (const category of categories) {
-    const fileNames = getFileNames(category);
+    const fileNames = readFileNames(category);
 
     const markdowns = await Promise.all(
       fileNames.map(async (slug) => {
-        const text = await getMarkdown(category, slug);
+        const text = await fetchMarkdown(category, slug);
         const frontmatter = extractFrontmatter(text);
         return { category, slug, frontmatter };
       })
