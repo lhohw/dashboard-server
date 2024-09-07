@@ -74,23 +74,26 @@ const addLinkIfURLOnly = (reference: string) => {
   return `- [${url}](${url})`;
 };
 
-export const transformAllImage = async (text: string): Promise<string> => {
+export const transformAllImage = async (
+  text: string,
+  category: string,
+  slug: string
+): Promise<string> => {
   const globalRegex = new RegExp(imgRegex, "mg");
   let matched;
 
   while ((matched = globalRegex.exec(text))) {
-    const matchedStr = matched[0];
-    let source = matchedStr;
+    let imgStr = matched[0];
 
-    if (!hasClosingTag(source)) source = addClosingTag(source);
-    source = source.replace(srcRegex, `src="${await srcToBase64(source)}"`);
-    text = text.replace(matchedStr, source);
+    if (!hasClosingTag(imgStr)) imgStr = addClosingTag(imgStr);
+    const replaced = await replaceSrcToBase64(imgStr, category, slug);
+    text = text.replace(imgStr, replaced);
   }
 
   return text;
 };
 
-const hasClosingTag = (source: string) => source.endsWith("/>");
+const hasClosingTag = (imgMarkupStr: string) => imgMarkupStr.endsWith("/>");
 
 /**
  * add HTML closing tag if not exist or insufficient(only >)
@@ -99,24 +102,29 @@ export const addClosingTag = (text: string) => {
   return text.replace(/[\/>]*$/, "/>");
 };
 
-export const srcToBase64 = async (source: string) => {
-  const matched = source.match(srcRegex);
+export const replaceSrcToBase64 = async (
+  imgMarkupStr: string,
+  category: string,
+  slug: string
+) => {
+  const matched = imgMarkupStr.match(srcRegex);
+
   if (!matched) {
-    console.error("source not matched");
-    return source;
+    throw new Error("src is not matched to srcRegex");
   }
 
   const [, src, ext] = matched;
-  const splitted = src.split("/");
 
-  const filename = splitted.pop()!;
-  const imagePath = getPostPath(`${filename}.${ext}`);
-  const img = Bun.file(imagePath);
+  const path = getPostPath(category, slug, `${src}.${ext}`);
+  const img = Bun.file(path);
   const buf = await img.arrayBuffer();
   const resized = await resizeImage(buf);
   const base64 = toBase64(resized);
-
-  return `data:image/${ext};base64,${base64}`;
+  const replaced = imgMarkupStr.replace(
+    srcRegex,
+    `src="data:image/${ext};base64,${base64}"`
+  );
+  return replaced;
 };
 
 /**
