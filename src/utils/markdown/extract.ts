@@ -28,7 +28,8 @@ export const extractFrontmatter = (text: string) => {
 export const extractHeadings = (markdown: string): Heading[] => {
   const headings = [];
   let matched;
-  while ((matched = headingRegex.exec(markdown))) {
+  const regex = new RegExp(headingRegex, "mg");
+  while ((matched = regex.exec(markdown))) {
     const [, sharp, textContent] = matched;
     const tagName = `h${sharp.length}`;
 

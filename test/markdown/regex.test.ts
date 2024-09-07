@@ -997,5 +997,46 @@ describe("heading", () => {
       expect(sharps).toBe(`####`);
       expect(heading).toBe(`### ## #`);
     });
+
+    test(`heading with link`, () => {
+      const row = `##### [React Reconciler](https://github.com/facebook/react/tree/main/packages/react-reconciler)`;
+      const matched = row.match(headingRegex);
+      expect(matched).not.toBeNull();
+
+      const [matchedStr, sharps, heading] = matched!;
+      expect(matchedStr).toBe(
+        `##### [React Reconciler](https://github.com/facebook/react/tree/main/packages/react-reconciler)`
+      );
+      expect(sharps).toBe(`#####`);
+      expect(heading).toBe(
+        `[React Reconciler](https://github.com/facebook/react/tree/main/packages/react-reconciler)`
+      );
+    });
+
+    test(`get single line`, () => {
+      const row = `# 리액트
+      ## 리액트란?`;
+
+      const matched = row.match(headingRegex);
+      expect(matched).not.toBeNull();
+
+      const [matchedStr, sharps, heading] = matched!;
+      expect(matchedStr).toBe(`# 리액트`);
+      expect(sharps).toBe(`#`);
+      expect(heading).toBe("리액트");
+    });
+
+    test(`with tab`, () => {
+      const row = `# 리 액    트
+      # 리액트란?`;
+
+      const matched = row.match(headingRegex);
+      expect(matched).not.toBeNull();
+
+      const [matchedStr, sharps, heading] = matched!;
+      expect(matchedStr).toBe(`# 리 액    트`);
+      expect(sharps).toBe(`#`);
+      expect(heading).toBe(`리 액    트`);
+    });
   });
 });

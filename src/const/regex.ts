@@ -109,6 +109,6 @@ export const imgRegex = new RegExp(
 );
 
 export const headingRegex = new RegExp(
-  `^([#]+) ([${charRegex.source}${spaceRegex.source}${bracketRegex.source}${quotationMarkRegex.source}]+)$`,
+  `^([#]+) ([${charRegex.source}${bracketRegex.source}${quotationMarkRegex.source} ]+)$`,
   "m"
 );
