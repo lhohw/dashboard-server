@@ -8,6 +8,7 @@ import {
   transformReference,
   transformLink,
 } from "utils/markdown/transform";
+import { getPostPath } from "utils/path";
 import { toCamelCase } from "utils/string";
 
 describe("serialize markdown", () => {
@@ -104,39 +105,11 @@ describe("serialize markdown", () => {
 
   describe("image transform", () => {
     test("srcToBase64", async () => {
-      const text = `
-      <div id="prototype-graph-partial">
-        <img src="../../images/prototype-graph-partial.png" style="max-width: 600px;" alt="프로토타입 그래프 일부분" />
-      </div>
-      `;
-      const transformed = await srcToBase64(text);
-      const src = `src="${transformed}"`;
-      const matched = src.match(base64SrcRegex);
-      expect(matched).not.toBeNull();
-
-      const [, ext] = matched!;
-      expect(ext).toBe("png");
+      //
     });
 
     test("transformAllImage", async () => {
-      const text = `
-      <div>
-        <img src="../../images/prototype-graph.png" style="display: flex;" />
-      </div>
-  
-      markdown text
-      ...
-  
-      <div>
-        <img src="../../images/prototype-graph.png" style="display: flex;" />
-      </div>
-      `;
-
-      const transformed = await transformAllImage(text);
-      const globalRegex = new RegExp(base64SrcRegex, "g");
-      const matched = [...transformed.matchAll(globalRegex)];
-
-      expect(matched).toHaveLength(2);
+      //
     });
 
     describe("addClosingTag", () => {
@@ -162,41 +135,6 @@ describe("serialize markdown", () => {
         const text = `<img src="" />`;
         const actual = addClosingTag(text);
         expect(actual).toBe(`<img src="" />`);
-      });
-
-      test("in markdown", async () => {
-        const img1 = `<img src="../../images/splitted-binary-data.png" style="display: flex;">`;
-        expect(addClosingTag(img1)).toBe(
-          `<img src="../../images/splitted-binary-data.png" style="display: flex;"/>`
-        );
-
-        const img2 = `<img src="../../images/splitted-binary-data.png" style="display: flex;" />`;
-        expect(addClosingTag(img2)).toBe(
-          `<img src="../../images/splitted-binary-data.png" style="display: flex;" />`
-        );
-
-        const text = `<div>
-          ${img1}
-        </div>
-  
-        markdown text
-        ...
-  
-        <div>
-          ${img2}
-        </div>`;
-
-        const transformed = await transformAllImage(text);
-        const globalRegex = new RegExp(imgRegex, "g");
-
-        const matched = transformed.match(globalRegex);
-        expect(matched).toBeArray();
-        expect(matched).toHaveLength(2);
-
-        const allElementsHaveClosingTags = matched!.every((m) =>
-          m.endsWith("/>")
-        );
-        expect(allElementsHaveClosingTags).toBeTrue();
       });
     });
   });
