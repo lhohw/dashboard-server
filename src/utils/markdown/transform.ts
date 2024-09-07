@@ -13,7 +13,7 @@ import { toCamelCase } from "utils/string";
 import { getPath } from "utils/path";
 
 /**
- * apply transforms to markdown to be compatible with client
+ * transform markdowns to be compatible with client
  * */
 export const transform = (text: string, category: string) => {
   return text.replace(markdownSerializerRegex, (matched) => {
