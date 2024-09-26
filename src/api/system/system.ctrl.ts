@@ -6,6 +6,7 @@ import {
   changeCategory as _changeCategory,
 } from "lib/manipulate";
 import { PGBuiltinsTypes } from "const/definitions";
+import { validate } from "lib/_helper";
 
 type SystemState = {};
 type SystemContext = RouterContext<SystemState>;
@@ -25,13 +26,7 @@ export const addColumn = async (ctx: SystemContext) => {
 
   let requestBody: z.infer<typeof ObjectType>;
   try {
-    requestBody = ObjectType.pick({
-      tableName: true,
-      columnName: true,
-      data: true,
-      type: true,
-      notNull: true,
-    }).parse(ctx.request.body);
+    requestBody = validate(ctx.request.body, ObjectType);
   } catch (e: any) {
     ctx.status = 400;
     ctx.message = e.message;
@@ -55,10 +50,7 @@ export const changeCategory = async (ctx: SystemContext) => {
 
   let requestBody: z.infer<typeof ObjectType>;
   try {
-    requestBody = ObjectType.pick({
-      from: true,
-      to: true,
-    }).parse(ctx.request.body);
+    requestBody = validate(ctx.request.body, ObjectType);
   } catch (e: any) {
     ctx.status = 400;
     ctx.message = e.message;
