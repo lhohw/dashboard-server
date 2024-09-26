@@ -122,7 +122,7 @@ export const replaceSrcToBase64 = async (
   const base64 = toBase64(resized);
   const replaced = imgMarkupStr.replace(
     srcRegex,
-    `src="data:image/${ext};base64,${base64}"`
+    `src="data:image/webp;base64,${base64}"`
   );
   return replaced;
 };
