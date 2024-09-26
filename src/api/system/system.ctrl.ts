@@ -42,6 +42,10 @@ export const addColumn = async (ctx: SystemContext) => {
   }
 };
 
+/**
+ * category 변경
+ * PATCH /system/category
+ */
 export const changeCategory = async (ctx: SystemContext) => {
   const ObjectType = z.object({
     from: z.string(),
