@@ -52,7 +52,7 @@ export const JSXStyleRegex = new RegExp(
  * <!-- ... -->
  */
 export const commentRegex = new RegExp(
-  `<!--([${charRegex.source}${bracketRegex.source}\\s]*)-->`
+  `<!--([${charRegex.source}${bracketRegex.source}${quotationMarkRegex.source}\\s]*)-->`
 );
 
 /**
@@ -70,7 +70,7 @@ export const referenceRegex = new RegExp(
  * [title](link)
  */
 export const linkRegex = new RegExp(
-  `\\[\([${charRegex.source}${bracketRegex.source}\\s]+\)\\]\\(\([${charRegex.source}]+\)\\)`
+  `\\[\([${charRegex.source}\\(\\)\\{\\}\\s]+\)\\]\\(\([${charRegex.source}\\(\\)\\{\\}]+\)\\)`
 );
 
 export const mdRegex = new RegExp(`.md(#[${charRegex.source}]+)\?`);
@@ -105,7 +105,7 @@ export const imgPropsRegexSource = [
   .join("|");
 
 export const imgRegex = new RegExp(
-  `<img ((?:\\s*(?:${srcRegex.source}|${titleRegex.source}|${altRegex.source}|${inlineStyleRegex.source}|${base64SrcRegex.source}))+)\\s*/?>`
+  `<img ((?:\\s*(?:${srcRegex.source}|${titleRegex.source}|${altRegex.source}|${inlineStyleRegex.source}|${base64SrcRegex.source}|${JSXStyleRegex.source}))+)\\s*/?>`
 );
 
 export const headingRegex = new RegExp(
