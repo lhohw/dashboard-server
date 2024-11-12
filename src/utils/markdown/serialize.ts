@@ -6,17 +6,32 @@ import { fetchMarkdown } from "utils/io";
 export const serializeMarkdown = async (
   markdown: string,
   category: string,
-  slug: string
+  slug: string,
+  isUploaded?: boolean
 ) => {
   const transformed = transform(markdown, category);
-  const imgTransformed = await transformAllImage(transformed, category, slug);
+  const imgTransformed = await transformAllImage(
+    transformed,
+    category,
+    slug,
+    isUploaded
+  );
   const compressed = compress(imgTransformed);
   return compressed;
 };
 
-export const serialize = async (category: string, slug: string) => {
+export const serialize = async (
+  category: string,
+  slug: string,
+  isUploaded?: boolean
+) => {
   const markdown = await fetchMarkdown(category, slug);
-  const compressed = await serializeMarkdown(markdown, category, slug);
+  const compressed = await serializeMarkdown(
+    markdown,
+    category,
+    slug,
+    isUploaded
+  );
   const headings = extractHeadings(markdown);
 
   return { compressed, headings };

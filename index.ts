@@ -23,7 +23,9 @@ function listeningListener() {
   const currentMode = argv.get("mode") as Mode;
   if (currentMode) {
     if (!mode.includes(currentMode)) {
-      throw new Error(`${currentMode} is not valid`);
+      throw new Error(
+        `${currentMode} is not valid.\n[ ${mode.join(", ")} ] are valid`
+      );
     }
     console.log(`Mode: ${currentMode}`);
   }

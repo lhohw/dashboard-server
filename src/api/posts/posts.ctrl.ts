@@ -117,12 +117,16 @@ export const remove = async (ctx: PostContext) => {
  * PATCH api/posts/:id
  */
 export const update = async (ctx: PostContext) => {
-  let requestBody: Partial<Post> & { recordUpdate?: boolean };
+  let requestBody: Partial<Post> & {
+    recordUpdate?: boolean;
+    isUploaded?: boolean;
+  };
   try {
     requestBody = Post.partial()
       .merge(
         z.object({
           recordUpdate: z.boolean().optional(),
+          isUploaded: z.boolean().optional(),
         })
       )
       .parse(ctx.request.body);
@@ -139,9 +143,14 @@ export const update = async (ctx: PostContext) => {
       slug = post.slug,
       category = post.category,
       recordUpdate = false,
+      isUploaded = true,
     } = requestBody;
 
-    const { compressed, headings } = await serialize(category, slug);
+    const { compressed, headings } = await serialize(
+      category,
+      slug,
+      isUploaded
+    );
     const res = await updatePost(
       {
         ...post,

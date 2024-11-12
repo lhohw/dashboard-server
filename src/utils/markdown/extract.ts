@@ -1,5 +1,5 @@
 import type { Heading } from "const/definitions";
-import { frontmatterRegex, headingRegex } from "const/regex";
+import { frontmatterRegex, headingRegex, imgRegex } from "const/regex";
 
 export type MarkdownStatus = "draft" | "ready";
 export type MarkdownMetadata = {
@@ -40,4 +40,11 @@ export const extractHeadings = (markdown: string): Heading[] => {
   }
 
   return headings;
+};
+
+export const extractImgMarkups = (markdown: string) => {
+  const globalRegex = new RegExp(imgRegex, "mg");
+  const matched = [...markdown.matchAll(globalRegex)].map((e) => e[0]);
+
+  return matched;
 };

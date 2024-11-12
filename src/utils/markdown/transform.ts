@@ -10,7 +10,10 @@ import {
 import { resizeImage } from "utils/image";
 import { toBase64 } from "utils/serialize";
 import { toCamelCase } from "utils/string";
-import { getPostPath } from "utils/path";
+import { getImagePathFromMarkdown } from "utils/path";
+import ImageUploader from "class/imageUploader";
+import type { UploadApiOptions } from "cloudinary";
+import { extractImgMarkups } from "./extract";
 
 /**
  * transform markdowns to be compatible with client
@@ -77,16 +80,22 @@ const addLinkIfURLOnly = (reference: string) => {
 export const transformAllImage = async (
   text: string,
   category: string,
-  slug: string
+  slug: string,
+  isUploaded?: boolean
 ): Promise<string> => {
-  const globalRegex = new RegExp(imgRegex, "mg");
-  let matched;
+  const matched = extractImgMarkups(text);
 
-  while ((matched = globalRegex.exec(text))) {
-    let imgStr = matched[0];
+  for (const imgStr of matched) {
+    let transformedImgStr = imgStr;
+    if (!hasClosingTag(imgStr)) transformedImgStr = addClosingTag(imgStr);
 
-    if (!hasClosingTag(imgStr)) imgStr = addClosingTag(imgStr);
-    const replaced = await replaceSrcToBase64(imgStr, category, slug);
+    const replaced = await replaceSrcForCloud(
+      transformedImgStr,
+      category,
+      slug,
+      isUploaded
+    );
+
     text = text.replace(imgStr, replaced);
   }
 
@@ -115,8 +124,9 @@ export const replaceSrcToBase64 = async (
 
   const [, src, ext] = matched;
 
-  const path = getPostPath(category, slug, `${src}.${ext}`);
+  const path = getImagePathFromMarkdown(category, slug, `${src}.${ext}`);
   const img = Bun.file(path);
+
   const buf = await img.arrayBuffer();
   const resized = await resizeImage(buf);
   const base64 = toBase64(resized);
@@ -124,6 +134,53 @@ export const replaceSrcToBase64 = async (
     srcRegex,
     `src="data:image/webp;base64,${base64}"`
   );
+  return replaced;
+};
+
+export const replaceSrcForCloud = async (
+  imgMarkupStr: string,
+  category: string,
+  slug: string,
+  isUploaded?: boolean
+) => {
+  const matched = imgMarkupStr.match(srcRegex);
+
+  if (!matched) {
+    throw new Error("src is not matched to srcRegex");
+  }
+
+  const [, src, ext] = matched;
+
+  const path = getImagePathFromMarkdown(category, slug, `${src}.${ext}`);
+  const fileName = src.split("/").pop();
+
+  if (!fileName) {
+    throw new Error("file name is not defined from src: " + src);
+  }
+
+  const img = Bun.file(path);
+  const buf = await img.arrayBuffer();
+  const resized = await resizeImage(buf);
+  const asset_folder = `blhog-posts-images/${category}/${slug}`;
+
+  const imageUploader = new ImageUploader();
+  let secure_url: string;
+
+  if (!isUploaded) {
+    secure_url = await imageUploader.uploadStream(resized, {
+      discard_original_filename: true,
+      use_filename: true,
+      filename_override: fileName,
+      use_asset_folder_as_public_id_prefix: true,
+      asset_folder,
+    } as UploadApiOptions);
+  } else {
+    secure_url = await imageUploader.getAssetInfo(
+      `${asset_folder}/${fileName}`
+    );
+  }
+
+  const replaced = imgMarkupStr.replace(srcRegex, `src="${secure_url}"`);
   return replaced;
 };
 
