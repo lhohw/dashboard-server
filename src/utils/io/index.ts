@@ -21,11 +21,16 @@ export const readFileNames = (category: string) => {
 export const fetchMarkdown = async (category: string, slug: string) => {
   let p = getPostPath(category, slug);
   let file = Bun.file(p);
+
   try {
     return await file.text();
   } catch (e: any) {
     if (e.name === "EISDIR") {
       p = path.join(p, "index.md");
+      file = Bun.file(p);
+      return await file.text();
+    } else if (!p.endsWith(".md")) {
+      p += ".md";
       file = Bun.file(p);
       return await file.text();
     }
