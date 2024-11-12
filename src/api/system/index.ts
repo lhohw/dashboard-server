@@ -7,5 +7,6 @@ import * as systemCtrl from "./system.ctrl";
 const system = new Router();
 
 system.post("/column", systemCtrl.addColumn);
+system.patch("/category", systemCtrl.changeCategory);
 
 export default system;

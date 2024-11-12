@@ -3,7 +3,7 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run index.ts",
+    "start": "NODE_ENV=development bun run index.ts",
     "start:prod": "NODE_ENV=production bun run index.ts",
     "test:watch": "bun test --watch",
     "test:only": "bun test --only --watch"
@@ -20,6 +20,7 @@
     "@koa/router": "^12.0.1",
     "@vercel/postgres": "^0.7.2",
     "axios": "^1.6.8",
+    "cloudinary": "^2.5.1",
     "koa": "^2.15.2",
     "koa-bodyparser": "^4.4.1",
     "pg": "^8.11.3",

@@ -10,10 +10,13 @@ import {
 import { resizeImage } from "utils/image";
 import { toBase64 } from "utils/serialize";
 import { toCamelCase } from "utils/string";
-import { getPath } from "utils/path";
+import { getImagePathFromMarkdown } from "utils/path";
+import ImageUploader from "class/imageUploader";
+import type { UploadApiOptions } from "cloudinary";
+import { extractImgMarkups } from "./extract";
 
 /**
- * apply transforms to markdown to be compatible with client
+ * transform markdowns to be compatible with client
  * */
 export const transform = (text: string, category: string) => {
   return text.replace(markdownSerializerRegex, (matched) => {
@@ -74,23 +77,32 @@ const addLinkIfURLOnly = (reference: string) => {
   return `- [${url}](${url})`;
 };
 
-export const transformAllImage = async (text: string): Promise<string> => {
-  const globalRegex = new RegExp(imgRegex, "mg");
-  let matched;
+export const transformAllImage = async (
+  text: string,
+  category: string,
+  slug: string,
+  isUploaded?: boolean
+): Promise<string> => {
+  const matched = extractImgMarkups(text);
 
-  while ((matched = globalRegex.exec(text))) {
-    const matchedStr = matched[0];
-    let source = matchedStr;
+  for (const imgStr of matched) {
+    let transformedImgStr = imgStr;
+    if (!hasClosingTag(imgStr)) transformedImgStr = addClosingTag(imgStr);
 
-    if (!hasClosingTag(source)) source = addClosingTag(source);
-    source = source.replace(srcRegex, `src="${await srcToBase64(source)}"`);
-    text = text.replace(matchedStr, source);
+    const replaced = await replaceSrcForCloud(
+      transformedImgStr,
+      category,
+      slug,
+      isUploaded
+    );
+
+    text = text.replace(imgStr, replaced);
   }
 
   return text;
 };
 
-const hasClosingTag = (source: string) => source.endsWith("/>");
+const hasClosingTag = (imgMarkupStr: string) => imgMarkupStr.endsWith("/>");
 
 /**
  * add HTML closing tag if not exist or insufficient(only >)
@@ -99,24 +111,77 @@ export const addClosingTag = (text: string) => {
   return text.replace(/[\/>]*$/, "/>");
 };
 
-export const srcToBase64 = async (source: string) => {
-  const matched = source.match(srcRegex);
+export const replaceSrcToBase64 = async (
+  imgMarkupStr: string,
+  category: string,
+  slug: string
+) => {
+  const matched = imgMarkupStr.match(srcRegex);
+
   if (!matched) {
-    console.error("source not matched");
-    return source;
+    throw new Error("src is not matched to srcRegex");
   }
 
   const [, src, ext] = matched;
-  const splitted = src.split("/");
 
-  const filename = splitted.pop()!;
-  const imagePath = getPath("image", `${filename}.${ext}`);
-  const img = Bun.file(imagePath);
+  const path = getImagePathFromMarkdown(category, slug, `${src}.${ext}`);
+  const img = Bun.file(path);
+
   const buf = await img.arrayBuffer();
   const resized = await resizeImage(buf);
   const base64 = toBase64(resized);
+  const replaced = imgMarkupStr.replace(
+    srcRegex,
+    `src="data:image/webp;base64,${base64}"`
+  );
+  return replaced;
+};
 
-  return `data:image/${ext};base64,${base64}`;
+export const replaceSrcForCloud = async (
+  imgMarkupStr: string,
+  category: string,
+  slug: string,
+  isUploaded?: boolean
+) => {
+  const matched = imgMarkupStr.match(srcRegex);
+
+  if (!matched) {
+    throw new Error("src is not matched to srcRegex");
+  }
+
+  const [, src, ext] = matched;
+
+  const path = getImagePathFromMarkdown(category, slug, `${src}.${ext}`);
+  const fileName = src.split("/").pop();
+
+  if (!fileName) {
+    throw new Error("file name is not defined from src: " + src);
+  }
+
+  const img = Bun.file(path);
+  const buf = await img.arrayBuffer();
+  const resized = await resizeImage(buf);
+  const asset_folder = `blhog-posts-images/${category}/${slug}`;
+
+  const imageUploader = new ImageUploader();
+  let secure_url: string;
+
+  if (!isUploaded) {
+    secure_url = await imageUploader.uploadStream(resized, {
+      discard_original_filename: true,
+      use_filename: true,
+      filename_override: fileName,
+      use_asset_folder_as_public_id_prefix: true,
+      asset_folder,
+    } as UploadApiOptions);
+  } else {
+    secure_url = await imageUploader.getAssetInfo(
+      `${asset_folder}/${fileName}`
+    );
+  }
+
+  const replaced = imgMarkupStr.replace(srcRegex, `src="${secure_url}"`);
+  return replaced;
 };
 
 /**

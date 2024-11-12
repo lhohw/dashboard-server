@@ -72,3 +72,29 @@ export const addColumn = async (
 
   return { message, status };
 };
+
+export const changeCategory = async (from: string, to: string) => {
+  const client = await DBPool.getInstance();
+  let message, status;
+
+  try {
+    const res = await client.query({
+      text: `
+        UPDATE posts
+        SET category = $2
+        WHERE category = $1`,
+      values: [from, to],
+    });
+    // UPDATE returns rows: []
+    const rowCount = (res as any)?.rowCount || 0;
+
+    status = 200;
+    message = `success to change category name for ${rowCount} items | from: ${from}, to: ${to}`;
+  } catch (e: any) {
+    status = 500;
+    message = "failed to change category name";
+    console.error(e);
+  }
+
+  return { status, message };
+};

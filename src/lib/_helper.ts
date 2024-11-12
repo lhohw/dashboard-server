@@ -1,5 +1,6 @@
 import type { Client } from "class/DBClient";
 import type { Primitive } from "const/definitions";
+import type { z } from "zod";
 
 export const isTableExists = async (client: Client, tableName: string) => {
   try {
@@ -29,4 +30,20 @@ export const isColumnExists = async (
 
 export const isPrimitive = (data: unknown): data is Primitive => {
   return typeof data !== "function";
+};
+
+export const validate = <T extends z.ZodRawShape>(
+  body: unknown,
+  type: z.ZodObject<T>
+) => {
+  const keys = Object.keys(type.shape) as (keyof T)[];
+  const mask = keys.reduce(
+    (acc, key) => ({
+      ...acc,
+      [key]: true,
+    }),
+    {} as { [key in keyof T]: true }
+  );
+
+  return type.pick(mask).parse(body);
 };
